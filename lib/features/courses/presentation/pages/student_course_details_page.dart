@@ -35,12 +35,15 @@ class StudentCourseDetailsPage extends StatelessWidget {
     }
 
     return BlocProvider(
-      create: (_) => sl<StudentCourseCubit>()..loadCourse(studentId: studentId, courseId: courseId),
+      create: (_) =>
+          sl<StudentCourseCubit>()
+            ..loadCourse(studentId: studentId, courseId: courseId),
       child: BlocBuilder<StudentCourseCubit, StudentCourseState>(
         builder: (context, state) {
           return AdaptiveScaffold(
             title: 'Course details',
-            subtitle: 'Track your progress, complete the appropriate lesson, and view all videos.',
+            subtitle:
+                'Track your progress, complete the appropriate lesson, and view all videos.',
             selectedIndex: 1,
             onNavigationChanged: (index) => _onNavChanged(context, index),
             navigationDestinations: _getDestinations(),
@@ -49,14 +52,16 @@ class StudentCourseDetailsPage extends StatelessWidget {
               child: switch (state.status) {
                 ViewStateStatus.loading => const _StudentCourseLoading(),
                 ViewStateStatus.failure => EmptyStateWidget(
-                    title: 'The Course could not be opened',
-                    message: state.errorMessage ?? 'We could not find this Course in the current data.',
-                    icon: Icons.school_outlined,
-                  ),
+                  title: 'The Course could not be opened',
+                  message:
+                      state.errorMessage ??
+                      'We could not find this Course in the current data.',
+                  icon: Icons.school_outlined,
+                ),
                 _ => ResponsiveLayout(
-                    mobile: _MobileLayout(courseId: courseId, state: state),
-                    desktop: _DesktopLayout(courseId: courseId, state: state),
-                  ),
+                  mobile: _MobileLayout(courseId: courseId, state: state),
+                  desktop: _DesktopLayout(courseId: courseId, state: state),
+                ),
               },
             ),
           );
@@ -67,17 +72,32 @@ class StudentCourseDetailsPage extends StatelessWidget {
 
   void _onNavChanged(BuildContext context, int index) {
     switch (index) {
-      case 0: context.go('/student'); break;
-      case 1: context.go('/student/courses'); break;
-      case 2: context.go('/student/progress'); break;
+      case 0:
+        context.go('/student');
+        break;
+      case 1:
+        context.go('/student/courses');
+        break;
+      case 2:
+        context.go('/student/progress');
+        break;
     }
   }
 
   List<NavigationDestination> _getDestinations() {
     return const [
-      NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Dashboard'),
-      NavigationDestination(icon: Icon(Icons.menu_book_outlined), label: 'My Courses'),
-      NavigationDestination(icon: Icon(Icons.analytics_outlined), label: 'Progressive'),
+      NavigationDestination(
+        icon: Icon(Icons.home_outlined),
+        label: 'Dashboard',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.menu_book_outlined),
+        label: 'My Courses',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.analytics_outlined),
+        label: 'Progressive',
+      ),
     ];
   }
 }
@@ -99,7 +119,10 @@ class _MobileLayout extends StatelessWidget {
       children: [
         _CourseHeaderCard(courseId: courseId, state: state),
         const SizedBox(height: AppSpacing.sectionGap),
-        const SectionHeader(title: 'Videos', subtitle: 'Your personalized learning path.'),
+        const SectionHeader(
+          title: 'Videos',
+          subtitle: 'Your personalized learning path.',
+        ),
         const SizedBox(height: AppSpacing.lg),
         _VideosList(courseId: courseId, state: state),
         const SizedBox(height: AppSpacing.sectionGap),
@@ -126,7 +149,10 @@ class _DesktopLayout extends StatelessWidget {
             children: [
               _CourseHeaderCard(courseId: courseId, state: state),
               const SizedBox(height: AppSpacing.sectionGap),
-              const SectionHeader(title: 'Videos', subtitle: 'Course of lessons available in the Course.'),
+              const SectionHeader(
+                title: 'Videos',
+                subtitle: 'Course of lessons available in the Course.',
+              ),
               const SizedBox(height: AppSpacing.lg),
               _VideosList(courseId: courseId, state: state),
             ],
@@ -161,19 +187,27 @@ class _CourseHeaderCard extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.xxl),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppRadii.xxl),
-        gradient: LinearProgressIndicator(
-          value: isEnrolled ? (state.progress?.completionPercent ?? 0) : 0,
-          backgroundColor: Colors.transparent,
-          valueColor: AlwaysStoppedAnimation<Color>(Colors.white.withAlpha(20)),
-        ).value == 0 ? const LinearGradient(
-          colors: [AppColors.secondary, AppColors.secondarySoft],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ) : const LinearGradient(
-          colors: [AppColors.primary, AppColors.primarySoft],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        gradient:
+            LinearProgressIndicator(
+                  value: isEnrolled
+                      ? (state.progress?.completionPercent ?? 0)
+                      : 0,
+                  backgroundColor: Colors.transparent,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    Colors.white.withAlpha(20),
+                  ),
+                ).value ==
+                0
+            ? const LinearGradient(
+                colors: [AppColors.secondary, AppColors.secondarySoft],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : const LinearGradient(
+                colors: [AppColors.primary, AppColors.primarySoft],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
         boxShadow: AppShadows.elevated,
       ),
       child: Column(
@@ -204,14 +238,17 @@ class _CourseHeaderCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.lg),
           Text(
             course.title,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
             course.description,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Colors.white.withAlpha(210),
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge?.copyWith(color: Colors.white.withAlpha(210)),
           ),
           const SizedBox(height: AppSpacing.xxl),
           if (isEnrolled) ...[
@@ -227,13 +264,17 @@ class _CourseHeaderCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             Text(
               '${((state.progress?.completionPercent ?? 0) * 100).round()}% completed - ${course.totalLessons} video',
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.white),
+              style: Theme.of(
+                context,
+              ).textTheme.labelLarge?.copyWith(color: Colors.white),
             ),
             if (state.progress?.lastVideoTitle != null) ...[
               const SizedBox(height: AppSpacing.sm),
               Text(
                 'Latest video: ${state.progress!.lastVideoTitle}',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white.withAlpha(200)),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.white.withAlpha(200),
+                ),
               ),
             ],
             const SizedBox(height: AppSpacing.xl),
@@ -242,7 +283,9 @@ class _CourseHeaderCard extends StatelessWidget {
                 FilledButton.icon(
                   onPressed: resumeVideoId == null
                       ? null
-                      : () => context.push('/student/courses/$courseId/video/$resumeVideoId'),
+                      : () => context.push(
+                          '/student/courses/$courseId/video/$resumeVideoId',
+                        ),
                   icon: const Icon(Icons.play_arrow_rounded),
                   label: const Text('Complete the lesson'),
                   style: FilledButton.styleFrom(
@@ -253,80 +296,90 @@ class _CourseHeaderCard extends StatelessWidget {
               ],
             ),
           ] else ...[
-             const Divider(color: Colors.white24, height: AppSpacing.xxl),
-             Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'سعر الكورس',
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.white70),
+            const Divider(color: Colors.white24, height: AppSpacing.xxl),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'سعر الكورس',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelLarge?.copyWith(color: Colors.white70),
+                ),
+                Text(
+                  '1500 EGP',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
                   ),
-                  Text(
-                    '1500 EGP',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withAlpha(25),
+                    borderRadius: BorderRadius.circular(AppRadii.lg),
+                    border: Border.all(color: Colors.white.withAlpha(50)),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(AppSpacing.lg),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withAlpha(25),
-                      borderRadius: BorderRadius.circular(AppRadii.lg),
-                      border: Border.all(color: Colors.white.withAlpha(50)),
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(Icons.info_outline_rounded, color: Colors.white, size: 20),
-                            const SizedBox(width: AppSpacing.sm),
-                            Expanded(
-                              child: Text(
-                                'للاشتراك في الكورس، يرجى التواصل مع الإدارة عبر الواتساب أو التليجرام:',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      color: Colors.white.withAlpha(230),
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.info_outline_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          Expanded(
+                            child: Text(
+                              'للاشتراك في الكورس، يرجى التواصل مع الإدارة عبر الواتساب أو التليجرام:',
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: Colors.white.withAlpha(230),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: FilledButton.icon(
+                              onPressed: () {}, // WhatsApp Action
+                              icon: const Icon(
+                                Icons.chat_bubble_rounded,
+                                size: 18,
+                              ),
+                              label: const Text('واتساب'),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: const Color(0xFF25D366),
+                                foregroundColor: Colors.white,
                               ),
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: AppSpacing.lg),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: FilledButton.icon(
-                                onPressed: () {}, // WhatsApp Action
-                                icon: const Icon(Icons.chat_bubble_rounded, size: 18),
-                                label: const Text('واتساب'),
-                                style: FilledButton.styleFrom(
-                                  backgroundColor: const Color(0xFF25D366),
-                                  foregroundColor: Colors.white,
-                                ),
+                          ),
+                          const SizedBox(width: AppSpacing.md),
+                          Expanded(
+                            child: FilledButton.icon(
+                              onPressed: () {}, // Telegram Action
+                              icon: const Icon(Icons.send_rounded, size: 18),
+                              label: const Text('تليجرام'),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: const Color(0xFF0088CC),
+                                foregroundColor: Colors.white,
                               ),
                             ),
-                            const SizedBox(width: AppSpacing.md),
-                            Expanded(
-                              child: FilledButton.icon(
-                                onPressed: () {}, // Telegram Action
-                                icon: const Icon(Icons.send_rounded, size: 18),
-                                label: const Text('تليجرام'),
-                                style: FilledButton.styleFrom(
-                                  backgroundColor: const Color(0xFF0088CC),
-                                  foregroundColor: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
+            ),
           ],
         ],
       ),
@@ -341,28 +394,40 @@ class _VideosList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (state.videos.isEmpty) {
-      return const EmptyStateWidget(
-        title: 'There are no videos',
-        message: 'No lessons have been added to this Course yet.',
+    final isEnrolled = state.progress != null;
+    final isFeatured = state.course?.isFeatured ?? false;
+    final canAccessAll = isEnrolled || isFeatured;
+
+    // Filter videos: if not enrolled and not featured, show only preview videos
+    final videos = canAccessAll
+        ? state.videos
+        : state.videos.where((v) => v.isPreview).toList();
+
+    if (videos.isEmpty) {
+      return EmptyStateWidget(
+        title: canAccessAll ? 'There are no videos' : 'Preview videos only',
+        message: canAccessAll
+            ? 'No lessons have been added to this Course yet.'
+            : 'Subscribe to the course to access all lessons. Preview videos are available below.',
         icon: Icons.video_library_outlined,
       );
     }
-    
-    final isEnrolled = state.progress != null;
-    
+
     return Column(
-      children: state.videos.map((video) {
+      children: videos.map((video) {
+        final canWatch = canAccessAll || video.isPreview;
         return Padding(
           padding: const EdgeInsets.only(bottom: AppSpacing.md),
           child: CourseVideoTile(
             video: video,
             isHighlighted: isEnrolled && video.id == state.lastWatchedVideoId,
             highlightLabel: 'Last seen',
-            onTap: isEnrolled 
-                ? () => context.push('/student/courses/$courseId/video/${video.id}')
+            onTap: canWatch
+                ? () => context.push(
+                    '/student/courses/$courseId/video/${video.id}',
+                  )
                 : null,
-            trailing: isEnrolled 
+            trailing: canWatch
                 ? const Icon(Icons.chevron_right_rounded)
                 : const Icon(Icons.lock_outline_rounded, color: Colors.grey),
           ),
@@ -387,9 +452,15 @@ class _ResourcesAndDiscussions extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: const [
-              _ResourceRow(title: 'Architecture checklist', subtitle: 'PDF file - 8 pages'),
+              _ResourceRow(
+                title: 'Architecture checklist',
+                subtitle: 'PDF file - 8 pages',
+              ),
               Divider(height: AppSpacing.xxl),
-              _ResourceRow(title: 'Initial design package', subtitle: 'Help attachments'),
+              _ResourceRow(
+                title: 'Initial design package',
+                subtitle: 'Help attachments',
+              ),
             ],
           ),
         ),
@@ -400,7 +471,8 @@ class _ResourcesAndDiscussions extends StatelessWidget {
           child: SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
-              onPressed: () => context.push('/student/courses/$courseId/comments'),
+              onPressed: () =>
+                  context.push('/student/courses/$courseId/comments'),
               icon: const Icon(Icons.forum_rounded),
               label: const Text('Open Course comments'),
             ),
@@ -427,7 +499,10 @@ class _ResourceRow extends StatelessWidget {
             color: AppColors.secondary.withAlpha(25),
             borderRadius: BorderRadius.circular(AppRadii.lg),
           ),
-          child: const Icon(Icons.description_outlined, color: AppColors.secondary),
+          child: const Icon(
+            Icons.description_outlined,
+            color: AppColors.secondary,
+          ),
         ),
         const SizedBox(width: AppSpacing.md),
         Expanded(

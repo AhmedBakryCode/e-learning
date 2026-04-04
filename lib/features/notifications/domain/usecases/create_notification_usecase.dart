@@ -36,3 +36,23 @@ class CreateNotificationUseCase
     );
   }
 }
+
+class MarkNotificationReadParams extends Equatable {
+  const MarkNotificationReadParams(this.notificationId);
+  final String notificationId;
+
+  @override
+  List<Object?> get props => [notificationId];
+}
+
+class MarkNotificationReadUseCase
+    implements UseCase<void, MarkNotificationReadParams> {
+  const MarkNotificationReadUseCase(this._repository);
+
+  final NotificationsRepository _repository;
+
+  @override
+  Future<void> call(MarkNotificationReadParams params) {
+    return _repository.markAsRead(params.notificationId);
+  }
+}

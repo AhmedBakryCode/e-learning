@@ -13,7 +13,6 @@ import 'package:e_learning/features/notifications/presentation/cubit/notificatio
 import 'package:e_learning/features/notifications/presentation/cubit/notifications_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
 class NotificationsPage extends StatelessWidget {
   const NotificationsPage({super.key, required this.role});
@@ -26,18 +25,11 @@ class NotificationsPage extends StatelessWidget {
       create: (_) => sl<NotificationsCubit>()..loadNotifications(),
       child: BlocBuilder<NotificationsCubit, NotificationsState>(
         builder: (context, state) {
-          final isStudent = role == UserRole.student;
-
           return AdaptiveScaffold(
             title: 'Alert notifications',
             subtitle: 'Organized alerts with clear reading statuses.',
-            selectedIndex: -1, // Hidden from standard bottom nav loops
-            onNavigationChanged: isStudent
-                ? (index) => _onStudentNavChanged(context, index)
-                : (index) => _onAdminNavChanged(context, index),
-            navigationDestinations: isStudent
-                ? _getStudentDestinations()
-                : _getAdminDestinations(),
+            selectedIndex: 0,
+            navigationDestinations: const [],
             body: AnimatedSwitcher(
               duration: AppDurations.medium,
               child: switch (state.status) {
@@ -84,7 +76,8 @@ class NotificationsPage extends StatelessWidget {
                     if (state.notifications.isEmpty)
                       const EmptyStateWidget(
                         title: 'No notifications yet',
-                        message: 'Notifications from your teacher\'s dashboard will appear here.',
+                        message:
+                            'Notifications from your teacher\'s dashboard will appear here.',
                         icon: Icons.notifications_none_rounded,
                       )
                     else
@@ -105,7 +98,9 @@ class NotificationsPage extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                   style: Theme.of(context).textTheme.bodySmall,
                                 ),
-                                if (notification.zoomMeetingLink != null && MediaQuery.of(context).size.width >= 400) ...[
+                                if (notification.zoomMeetingLink != null &&
+                                    MediaQuery.of(context).size.width >=
+                                        400) ...[
                                   const SizedBox(height: AppSpacing.sm),
                                   Text(
                                     notification.zoomMeetingLink!,
@@ -151,66 +146,6 @@ class NotificationsPage extends StatelessWidget {
         },
       ),
     );
-  }
-
-  void _onStudentNavChanged(BuildContext context, int index) {
-    switch (index) {
-      case 0:
-        context.go('/student');
-        break;
-      case 1:
-        context.go('/student/courses');
-        break;
-      case 2:
-        context.go('/student/progress');
-        break;
-    }
-  }
-
-  List<NavigationDestination> _getStudentDestinations() {
-    return const [
-      NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Dashboard'),
-      NavigationDestination(
-        icon: Icon(Icons.menu_book_outlined),
-        label: 'My Courses',
-      ),
-      NavigationDestination(
-        icon: Icon(Icons.analytics_outlined),
-        label: 'Progressive',
-      ),
-    ];
-  }
-
-  void _onAdminNavChanged(BuildContext context, int index) {
-    switch (index) {
-      case 0:
-        context.go('/admin');
-        break;
-      case 1:
-        context.go('/admin/courses');
-        break;
-      case 2:
-        context.go('/admin/students');
-        break;
-      case 3:
-        context.go('/admin/notifications/send');
-        break;
-    }
-  }
-
-  List<NavigationDestination> _getAdminDestinations() {
-    return const [
-      NavigationDestination(
-        icon: Icon(Icons.dashboard_outlined),
-        label: 'Dashboard',
-      ),
-      NavigationDestination(
-        icon: Icon(Icons.menu_book_outlined),
-        label: 'Courses',
-      ),
-      NavigationDestination(icon: Icon(Icons.groups_outlined), label: 'Students'),
-      NavigationDestination(icon: Icon(Icons.send_outlined), label: 'Send'),
-    ];
   }
 }
 

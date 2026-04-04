@@ -1,5 +1,4 @@
 import 'package:e_learning/core/constants/design_tokens.dart';
-import 'package:e_learning/core/utils/responsive_utils.dart';
 import 'package:e_learning/core/widgets/responsive_layout.dart';
 import 'package:flutter/material.dart';
 
@@ -10,22 +9,26 @@ class AdaptiveScaffold extends StatelessWidget {
     required this.body,
     this.subtitle,
     this.actions = const [],
+    this.leading,
     this.navigationDestinations = const [],
     this.onNavigationChanged,
     this.selectedIndex = 0,
     this.floatingActionButton,
     this.headerTrailing,
+    this.showBackButton = false,
   });
 
   final String title;
   final String? subtitle;
   final Widget body;
   final List<Widget> actions;
+  final Widget? leading;
   final List<NavigationDestination> navigationDestinations;
   final ValueChanged<int>? onNavigationChanged;
   final int selectedIndex;
   final Widget? floatingActionButton;
   final Widget? headerTrailing;
+  final bool showBackButton;
 
   @override
   Widget build(BuildContext context) {
@@ -35,33 +38,39 @@ class AdaptiveScaffold extends StatelessWidget {
         subtitle: subtitle,
         body: body,
         actions: actions,
+        leading: leading,
         navigationDestinations: navigationDestinations,
         onNavigationChanged: onNavigationChanged,
         selectedIndex: selectedIndex,
         floatingActionButton: floatingActionButton,
         headerTrailing: headerTrailing,
+        showBackButton: showBackButton,
       ),
       tablet: _TabletScaffold(
         title: title,
         subtitle: subtitle,
         body: body,
         actions: actions,
+        leading: leading,
         navigationDestinations: navigationDestinations,
         onNavigationChanged: onNavigationChanged,
         selectedIndex: selectedIndex,
         floatingActionButton: floatingActionButton,
         headerTrailing: headerTrailing,
+        showBackButton: showBackButton,
       ),
       desktop: _DesktopScaffold(
         title: title,
         subtitle: subtitle,
         body: body,
         actions: actions,
+        leading: leading,
         navigationDestinations: navigationDestinations,
         onNavigationChanged: onNavigationChanged,
         selectedIndex: selectedIndex,
         floatingActionButton: floatingActionButton,
         headerTrailing: headerTrailing,
+        showBackButton: showBackButton,
       ),
     );
   }
@@ -73,22 +82,26 @@ class _MobileScaffold extends StatelessWidget {
     this.subtitle,
     required this.body,
     this.actions = const [],
+    this.leading,
     this.navigationDestinations = const [],
     this.onNavigationChanged,
     this.selectedIndex = 0,
     this.floatingActionButton,
     this.headerTrailing,
+    required this.showBackButton,
   });
 
   final String title;
   final String? subtitle;
   final Widget body;
   final List<Widget> actions;
+  final Widget? leading;
   final List<NavigationDestination> navigationDestinations;
   final ValueChanged<int>? onNavigationChanged;
   final int selectedIndex;
   final Widget? floatingActionButton;
   final Widget? headerTrailing;
+  final bool showBackButton;
 
   @override
   Widget build(BuildContext context) {
@@ -97,7 +110,10 @@ class _MobileScaffold extends StatelessWidget {
       bottomNavigationBar: navigationDestinations.isEmpty
           ? null
           : NavigationBar(
-              selectedIndex: selectedIndex,
+              selectedIndex: selectedIndex.clamp(
+                0,
+                navigationDestinations.length - 1,
+              ),
               onDestinationSelected: onNavigationChanged,
               destinations: navigationDestinations,
             ),
@@ -106,7 +122,9 @@ class _MobileScaffold extends StatelessWidget {
         subtitle: subtitle,
         body: body,
         actions: actions,
+        leading: leading,
         headerTrailing: headerTrailing,
+        showBackButton: showBackButton,
       ),
     );
   }
@@ -118,22 +136,26 @@ class _TabletScaffold extends StatelessWidget {
     this.subtitle,
     required this.body,
     this.actions = const [],
+    this.leading,
     this.navigationDestinations = const [],
     this.onNavigationChanged,
     this.selectedIndex = 0,
     this.floatingActionButton,
     this.headerTrailing,
+    required this.showBackButton,
   });
 
   final String title;
   final String? subtitle;
   final Widget body;
   final List<Widget> actions;
+  final Widget? leading;
   final List<NavigationDestination> navigationDestinations;
   final ValueChanged<int>? onNavigationChanged;
   final int selectedIndex;
   final Widget? floatingActionButton;
   final Widget? headerTrailing;
+  final bool showBackButton;
 
   @override
   Widget build(BuildContext context) {
@@ -143,7 +165,10 @@ class _TabletScaffold extends StatelessWidget {
         children: [
           if (navigationDestinations.isNotEmpty)
             NavigationRail(
-              selectedIndex: selectedIndex,
+              selectedIndex: selectedIndex.clamp(
+                0,
+                navigationDestinations.length - 1,
+              ),
               onDestinationSelected: onNavigationChanged,
               labelType: NavigationRailLabelType.all,
               destinations: navigationDestinations
@@ -162,7 +187,9 @@ class _TabletScaffold extends StatelessWidget {
               subtitle: subtitle,
               body: body,
               actions: actions,
+              leading: leading,
               headerTrailing: headerTrailing,
+              showBackButton: showBackButton,
             ),
           ),
         ],
@@ -177,22 +204,26 @@ class _DesktopScaffold extends StatelessWidget {
     this.subtitle,
     required this.body,
     this.actions = const [],
+    this.leading,
     this.navigationDestinations = const [],
     this.onNavigationChanged,
     this.selectedIndex = 0,
     this.floatingActionButton,
     this.headerTrailing,
+    required this.showBackButton,
   });
 
   final String title;
   final String? subtitle;
   final Widget body;
   final List<Widget> actions;
+  final Widget? leading;
   final List<NavigationDestination> navigationDestinations;
   final ValueChanged<int>? onNavigationChanged;
   final int selectedIndex;
   final Widget? floatingActionButton;
   final Widget? headerTrailing;
+  final bool showBackButton;
 
   @override
   Widget build(BuildContext context) {
@@ -202,7 +233,10 @@ class _DesktopScaffold extends StatelessWidget {
           if (navigationDestinations.isNotEmpty)
             _Sidebar(
               destinations: navigationDestinations,
-              selectedIndex: selectedIndex,
+              selectedIndex: selectedIndex.clamp(
+                0,
+                navigationDestinations.length - 1,
+              ),
               onNavigationChanged: onNavigationChanged,
             ),
           Expanded(
@@ -212,7 +246,9 @@ class _DesktopScaffold extends StatelessWidget {
                   title: title,
                   subtitle: subtitle,
                   actions: actions,
+                  leading: leading,
                   headerTrailing: headerTrailing,
+                  showBackButton: showBackButton,
                 ),
                 Expanded(
                   child: Center(
@@ -254,10 +290,7 @@ class _Sidebar extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         border: Border(
-          left: BorderSide(
-            color: colorScheme.outlineVariant,
-            width: 1,
-          ),
+          left: BorderSide(color: colorScheme.outlineVariant, width: 1),
         ),
       ),
       child: Column(
@@ -284,7 +317,8 @@ class _Sidebar extends StatelessWidget {
             child: ListView.separated(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
               itemCount: destinations.length,
-              separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.xs),
+              separatorBuilder: (context, index) =>
+                  const SizedBox(height: AppSpacing.xs),
               itemBuilder: (context, index) {
                 final d = destinations[index];
                 final isSelected = index == selectedIndex;
@@ -330,13 +364,17 @@ class _DesktopTopbar extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.actions = const [],
+    this.leading,
     this.headerTrailing,
+    required this.showBackButton,
   });
 
   final String title;
   final String? subtitle;
   final List<Widget> actions;
+  final Widget? leading;
   final Widget? headerTrailing;
+  final bool showBackButton;
 
   @override
   Widget build(BuildContext context) {
@@ -354,19 +392,24 @@ class _DesktopTopbar extends StatelessWidget {
       ),
       child: Row(
         children: [
+          if (leading != null) ...[
+            leading!,
+            const SizedBox(width: AppSpacing.md),
+          ],
+          if (showBackButton && Navigator.of(context).canPop()) ...[
+            IconButton(
+              onPressed: () => Navigator.of(context).pop(),
+              icon: const Icon(Icons.arrow_back_ios_new_rounded),
+            ),
+            const SizedBox(width: AppSpacing.md),
+          ],
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
+              Text(title, style: Theme.of(context).textTheme.titleLarge),
               if (subtitle != null)
-                Text(
-                  subtitle!,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
+                Text(subtitle!, style: Theme.of(context).textTheme.bodySmall),
             ],
           ),
           const Spacer(),
@@ -376,9 +419,7 @@ class _DesktopTopbar extends StatelessWidget {
           ],
           ...actions,
           const SizedBox(width: AppSpacing.md),
-          const CircleAvatar(
-            child: Icon(Icons.person),
-          ),
+          const CircleAvatar(child: Icon(Icons.person)),
         ],
       ),
     );
@@ -391,14 +432,18 @@ class _BaseBody extends StatelessWidget {
     this.subtitle,
     required this.body,
     this.actions = const [],
+    this.leading,
     this.headerTrailing,
+    required this.showBackButton,
   });
 
   final String title;
   final String? subtitle;
   final Widget body;
   final List<Widget> actions;
+  final Widget? leading;
   final Widget? headerTrailing;
+  final bool showBackButton;
 
   @override
   Widget build(BuildContext context) {
@@ -429,6 +474,17 @@ class _BaseBody extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (leading != null) ...[
+                    leading!,
+                    const SizedBox(width: AppSpacing.md),
+                  ],
+                  if (showBackButton && Navigator.of(context).canPop()) ...[
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                  ],
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

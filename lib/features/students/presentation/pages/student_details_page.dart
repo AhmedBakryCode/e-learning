@@ -35,9 +35,16 @@ class StudentDetailsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => sl<StudentsCubit>()..loadStudentDetails(studentId)),
-        BlocProvider(create: (_) => sl<ProgressCubit>()..loadProgress(studentId: studentId)),
-        BlocProvider(create: (_) => sl<CoursesCubit>()..loadCourses(UserRole.admin)),
+        BlocProvider(
+          create: (_) => sl<StudentsCubit>()..loadStudentDetails(studentId),
+        ),
+        BlocProvider(
+          create: (_) =>
+              sl<ProgressCubit>()..loadProgress(studentId: studentId),
+        ),
+        BlocProvider(
+          create: (_) => sl<CoursesCubit>()..loadCourses(UserRole.admin),
+        ),
       ],
       child: _StudentDetailsView(studentId: studentId),
     );
@@ -63,7 +70,10 @@ class _StudentDetailsView extends StatelessWidget {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  state.actionMessage ?? (isSuccess ? 'The procedure was performed on the student successfully.' : 'The action failed on the student.'),
+                  state.actionMessage ??
+                      (isSuccess
+                          ? 'The procedure was performed on the student successfully.'
+                          : 'The action failed on the student.'),
                 ),
               ),
             );
@@ -85,7 +95,10 @@ class _StudentDetailsView extends StatelessWidget {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  state.actionMessage ?? (state.actionStatus == ViewStateStatus.success ? 'Progress updated.' : 'Unable to update progress.'),
+                  state.actionMessage ??
+                      (state.actionStatus == ViewStateStatus.success
+                          ? 'Progress updated.'
+                          : 'Unable to update progress.'),
                 ),
               ),
             );
@@ -104,11 +117,14 @@ class _StudentDetailsView extends StatelessWidget {
 
           return AdaptiveScaffold(
             title: 'Student details',
-            subtitle: 'Review student status, enrolled Courses, and manual progress updates.',
+            subtitle:
+                'Review student status, enrolled Courses, and manual progress updates.',
             selectedIndex: 2,
             onNavigationChanged: (index) => _onNavChanged(context, index),
             navigationDestinations: _getDestinations(),
-            headerTrailing: studentState.status == ViewStateStatus.success && studentState.selectedStudent != null
+            headerTrailing:
+                studentState.status == ViewStateStatus.success &&
+                    studentState.selectedStudent != null
                 ? PopupMenuButton<String>(
                     onSelected: (value) async {
                       if (value == 'edit') {
@@ -117,14 +133,19 @@ class _StudentDetailsView extends StatelessWidget {
                       if (value == 'delete') {
                         final confirmed = await _confirmDelete(context);
                         if (confirmed && context.mounted) {
-                          await context.read<StudentsCubit>().deleteStudent(studentId);
+                          await context.read<StudentsCubit>().deleteStudent(
+                            studentId,
+                          );
                         }
                       }
                     },
                     itemBuilder: (context) => const [
                       PopupMenuItem(value: 'edit', child: Text('Edit Student')),
                       PopupMenuDivider(),
-                      PopupMenuItem(value: 'delete', child: Text('Delete student')),
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: Text('Delete student'),
+                      ),
                     ],
                     child: const Icon(Icons.more_vert_rounded),
                   )
@@ -134,22 +155,24 @@ class _StudentDetailsView extends StatelessWidget {
               child: switch (studentState.status) {
                 ViewStateStatus.loading => const _StudentDetailsLoading(),
                 ViewStateStatus.failure => EmptyStateWidget(
-                    title: 'The student is not present',
-                    message: studentState.errorMessage ?? 'This student does not exist within the current experimental data.',
-                    icon: Icons.person_search_rounded,
-                  ),
+                  title: 'The student is not present',
+                  message:
+                      studentState.errorMessage ??
+                      'This student does not exist within the current experimental data.',
+                  icon: Icons.person_search_rounded,
+                ),
                 _ => ResponsiveLayout(
-                    mobile: _MobileLayout(
-                      studentId: studentId,
-                      studentState: studentState, 
-                      progressState: progressState,
-                    ),
-                    desktop: _DesktopLayout(
-                      studentId: studentId,
-                      studentState: studentState, 
-                      progressState: progressState,
-                    ),
+                  mobile: _MobileLayout(
+                    studentId: studentId,
+                    studentState: studentState,
+                    progressState: progressState,
                   ),
+                  desktop: _DesktopLayout(
+                    studentId: studentId,
+                    studentState: studentState,
+                    progressState: progressState,
+                  ),
+                ),
               },
             ),
           );
@@ -160,18 +183,35 @@ class _StudentDetailsView extends StatelessWidget {
 
   void _onNavChanged(BuildContext context, int index) {
     switch (index) {
-      case 0: context.go('/admin'); break;
-      case 1: context.go('/admin/courses'); break;
-      case 2: context.go('/admin/students'); break;
-      case 3: context.go('/admin/notifications/send'); break;
+      case 0:
+        context.go('/admin');
+        break;
+      case 1:
+        context.go('/admin/courses');
+        break;
+      case 2:
+        context.go('/admin/students');
+        break;
+      case 3:
+        context.go('/admin/notifications/send');
+        break;
     }
   }
 
   List<NavigationDestination> _getDestinations() {
     return const [
-      NavigationDestination(icon: Icon(Icons.dashboard_outlined), label: 'Dashboard'),
-      NavigationDestination(icon: Icon(Icons.menu_book_outlined), label: 'Courses'),
-      NavigationDestination(icon: Icon(Icons.groups_outlined), label: 'Students'),
+      NavigationDestination(
+        icon: Icon(Icons.dashboard_outlined),
+        label: 'Dashboard',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.menu_book_outlined),
+        label: 'Courses',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.groups_outlined),
+        label: 'Students',
+      ),
       NavigationDestination(icon: Icon(Icons.send_outlined), label: 'Send'),
     ];
   }
@@ -182,7 +222,9 @@ class _StudentDetailsView extends StatelessWidget {
       builder: (dialogContext) {
         return AlertDialog(
           title: const Text('Delete student?'),
-          content: const Text('The student will be deleted from the experimental control panel.'),
+          content: const Text(
+            'The student will be deleted from the experimental control panel.',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
@@ -203,7 +245,7 @@ class _StudentDetailsView extends StatelessWidget {
 class _MobileLayout extends StatelessWidget {
   const _MobileLayout({
     required this.studentId,
-    required this.studentState, 
+    required this.studentState,
     required this.progressState,
   });
   final String studentId;
@@ -236,7 +278,7 @@ class _MobileLayout extends StatelessWidget {
 class _DesktopLayout extends StatelessWidget {
   const _DesktopLayout({
     required this.studentId,
-    required this.studentState, 
+    required this.studentState,
     required this.progressState,
   });
   final String studentId;
@@ -255,7 +297,10 @@ class _DesktopLayout extends StatelessWidget {
             children: [
               _UserInfoCard(studentState: studentState),
               const SizedBox(height: AppSpacing.sectionGap),
-              _ProgressHeader(studentId: studentId, progressState: progressState),
+              _ProgressHeader(
+                studentId: studentId,
+                progressState: progressState,
+              ),
               const SizedBox(height: AppSpacing.lg),
               _ProgressList(progressState: progressState),
             ],
@@ -267,7 +312,10 @@ class _DesktopLayout extends StatelessWidget {
           flex: 2,
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(AppSpacing.xxl),
-            child: _UserMetricsRow(studentState: studentState, isVertical: true),
+            child: _UserMetricsRow(
+              studentState: studentState,
+              isVertical: true,
+            ),
           ),
         ),
       ],
@@ -290,7 +338,9 @@ class _UserInfoCard extends StatelessWidget {
             height: 72,
             decoration: BoxDecoration(
               gradient: student.profileImagePath == null
-                  ? const LinearGradient(colors: [AppColors.primary, AppColors.primarySoft])
+                  ? const LinearGradient(
+                      colors: [AppColors.primary, AppColors.primarySoft],
+                    )
                   : null,
               borderRadius: BorderRadius.circular(AppRadii.xl),
               boxShadow: [
@@ -305,23 +355,29 @@ class _UserInfoCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(AppRadii.xl),
               child: student.profileImagePath != null
                   ? (kIsWeb
-                      ? Image.network(
-                          student.profileImagePath!,
-                          fit: BoxFit.cover,
-                          width: 72,
-                          height: 72,
-                          errorBuilder: (_, __, ___) => const Icon(Icons.person),
-                        )
-                      : Image.file(
-                          File(student.profileImagePath!),
-                          fit: BoxFit.cover,
-                          width: 72,
-                          height: 72,
-                        ))
+                        ? Image.network(
+                            student.profileImagePath!,
+                            fit: BoxFit.cover,
+                            width: 72,
+                            height: 72,
+                            errorBuilder: (context, error, stackTrace) =>
+                                const Icon(Icons.person),
+                          )
+                        : Image.file(
+                            File(student.profileImagePath!),
+                            fit: BoxFit.cover,
+                            width: 72,
+                            height: 72,
+                          ))
                   : Center(
                       child: Text(
-                        student.name.split(' ').map((part) => part[0]).take(2).join(),
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white),
+                        student.name
+                            .split(' ')
+                            .map((part) => part[0])
+                            .take(2)
+                            .join(),
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(color: Colors.white),
                       ),
                     ),
             ),
@@ -368,7 +424,10 @@ class _UserMetricsRow extends StatelessWidget {
           color: AppColors.success,
         ),
       ),
-      if (isVertical) const SizedBox(height: AppSpacing.md) else const SizedBox(width: AppSpacing.lg),
+      if (isVertical)
+        const SizedBox(height: AppSpacing.md)
+      else
+        const SizedBox(width: AppSpacing.lg),
       Expanded(
         flex: isVertical ? 0 : 1,
         child: MetricHighlightCard(
@@ -399,7 +458,8 @@ class _ProgressList extends StatelessWidget {
     } else if (progressState.progressItems.isEmpty) {
       return const EmptyStateWidget(
         title: 'There are no registered Courses',
-        message: 'There are no progress records for this student currently within the demo data.',
+        message:
+            'There are no progress records for this student currently within the demo data.',
         icon: Icons.school_outlined,
       );
     } else {
@@ -409,7 +469,8 @@ class _ProgressList extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: AppSpacing.lg),
             child: AppCard(
               title: progress.courseTitle,
-              subtitle: 'Lesson ${progress.currentLesson} from ${progress.totalLessons}',
+              subtitle:
+                  'Lesson ${progress.currentLesson} from ${progress.totalLessons}',
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -421,7 +482,9 @@ class _ProgressList extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.sm),
-                  Text('${(progress.completionPercent * 100).round()}% completed'),
+                  Text(
+                    '${(progress.completionPercent * 100).round()}% completed',
+                  ),
                   const SizedBox(height: AppSpacing.md),
                   Align(
                     alignment: Alignment.centerRight,
@@ -440,7 +503,10 @@ class _ProgressList extends StatelessWidget {
     }
   }
 
-  Future<void> _showProgressEditor(BuildContext context, LearningProgress progress) async {
+  Future<void> _showProgressEditor(
+    BuildContext context,
+    LearningProgress progress,
+  ) async {
     final progressCubit = context.read<ProgressCubit>();
     var percent = progress.completionPercent;
     var currentLesson = progress.currentLesson.toDouble();
@@ -458,7 +524,8 @@ class _ProgressList extends StatelessWidget {
                   AppSpacing.pagePadding,
                   AppSpacing.pagePadding,
                   AppSpacing.pagePadding,
-                  MediaQuery.of(context).viewInsets.bottom + AppSpacing.pagePadding,
+                  MediaQuery.of(context).viewInsets.bottom +
+                      AppSpacing.pagePadding,
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -469,10 +536,14 @@ class _ProgressList extends StatelessWidget {
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: AppSpacing.lg),
-                    Text('${(percent * 100).round()}% completion', style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                      '${(percent * 100).round()}% completion',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                     Slider(
                       value: percent,
-                      onChanged: (value) => setSheetState(() => percent = value),
+                      onChanged: (value) =>
+                          setSheetState(() => percent = value),
                     ),
                     const SizedBox(height: AppSpacing.md),
                     Text(
@@ -484,7 +555,8 @@ class _ProgressList extends StatelessWidget {
                       min: 0,
                       max: progress.totalLessons.toDouble(),
                       divisions: progress.totalLessons,
-                      onChanged: (value) => setSheetState(() => currentLesson = value),
+                      onChanged: (value) =>
+                          setSheetState(() => currentLesson = value),
                     ),
                     const SizedBox(height: AppSpacing.lg),
                     Row(
@@ -537,7 +609,8 @@ class _ProgressHeader extends StatelessWidget {
         const Expanded(
           child: SectionHeader(
             title: 'Registered Courses',
-            subtitle: 'Manual progress updating is available for each Course in which a student is registered.',
+            subtitle:
+                'Manual progress updating is available for each Course in which a student is registered.',
           ),
         ),
         FilledButton.icon(
@@ -568,10 +641,12 @@ class _ProgressHeader extends StatelessWidget {
           ],
           child: BlocBuilder<CoursesCubit, CoursesState>(
             builder: (context, coursesState) {
-              final enrolledCourseIds = progressState.progressItems.map((p) => p.courseId).toSet();
-              final availableCourses = coursesState.courses.where(
-                (course) => !enrolledCourseIds.contains(course.id)
-              ).toList();
+              final enrolledCourseIds = progressState.progressItems
+                  .map((p) => p.courseId)
+                  .toSet();
+              final availableCourses = coursesState.courses
+                  .where((course) => !enrolledCourseIds.contains(course.id))
+                  .toList();
 
               return AlertDialog(
                 title: const Text('Add a Course for the student'),
@@ -580,30 +655,32 @@ class _ProgressHeader extends StatelessWidget {
                   child: coursesState.status == ViewStateStatus.loading
                       ? const Center(child: CircularProgressIndicator())
                       : availableCourses.isEmpty
-                          ? const Text('Registered for all available Courses.')
-                          : ListView.separated(
-                              shrinkWrap: true,
-                              itemCount: availableCourses.length,
-                              separatorBuilder: (_, __) => const Divider(),
-                              itemBuilder: (context, index) {
-                                final course = availableCourses[index];
-                                return ListTile(
-                                  leading: const Icon(Icons.menu_book_rounded),
-                                  title: Text(course.title),
-                                  subtitle: Text('${course.totalLessons} Lesson'),
-                                  trailing: const Icon(Icons.add_circle_outline_rounded),
-                                  onTap: () {
-                                    context.read<ProgressCubit>().enrollStudent(
-                                      EnrollInCourseParams(
-                                        studentId: studentId,
-                                        courseId: course.id,
-                                      ),
-                                    );
-                                    Navigator.pop(dialogContext);
-                                  },
+                      ? const Text('Registered for all available Courses.')
+                      : ListView.separated(
+                          shrinkWrap: true,
+                          itemCount: availableCourses.length,
+                          separatorBuilder: (context, index) => const Divider(),
+                          itemBuilder: (context, index) {
+                            final course = availableCourses[index];
+                            return ListTile(
+                              leading: const Icon(Icons.menu_book_rounded),
+                              title: Text(course.title),
+                              subtitle: Text('${course.totalLessons} Lesson'),
+                              trailing: const Icon(
+                                Icons.add_circle_outline_rounded,
+                              ),
+                              onTap: () {
+                                context.read<ProgressCubit>().enrollStudent(
+                                  EnrollInCourseParams(
+                                    studentId: studentId,
+                                    courseId: course.id,
+                                  ),
                                 );
+                                Navigator.pop(dialogContext);
                               },
-                            ),
+                            );
+                          },
+                        ),
                 ),
                 actions: [
                   TextButton(

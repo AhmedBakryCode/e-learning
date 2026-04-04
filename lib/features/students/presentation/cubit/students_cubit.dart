@@ -1,10 +1,12 @@
 import 'package:e_learning/core/constants/view_state_status.dart';
 import 'package:e_learning/core/usecases/usecase.dart';
 import 'package:e_learning/features/students/domain/entities/student.dart';
+import 'package:e_learning/features/students/domain/usecases/add_student_course_usecase.dart';
 import 'package:e_learning/features/students/domain/usecases/add_student_usecase.dart';
 import 'package:e_learning/features/students/domain/usecases/delete_student_usecase.dart';
 import 'package:e_learning/features/students/domain/usecases/get_student_by_id_usecase.dart';
 import 'package:e_learning/features/students/domain/usecases/get_students_usecase.dart';
+import 'package:e_learning/features/students/domain/usecases/get_top_students_usecase.dart';
 import 'package:e_learning/features/students/domain/usecases/update_student_usecase.dart';
 import 'package:e_learning/features/students/presentation/cubit/students_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -16,11 +18,15 @@ class StudentsCubit extends Cubit<StudentsState> {
     required AddStudentUseCase addStudent,
     required UpdateStudentUseCase updateStudent,
     required DeleteStudentUseCase deleteStudent,
+    required AddStudentCourseUseCase addStudentCourse,
+    required GetTopStudentsUseCase getTopStudents,
   }) : _getStudents = getStudents,
        _getStudentById = getStudentById,
        _addStudent = addStudent,
        _updateStudent = updateStudent,
        _deleteStudent = deleteStudent,
+       _addStudentCourse = addStudentCourse,
+       _getTopStudents = getTopStudents,
        super(const StudentsState());
 
   final GetStudentsUseCase _getStudents;
@@ -28,6 +34,8 @@ class StudentsCubit extends Cubit<StudentsState> {
   final AddStudentUseCase _addStudent;
   final UpdateStudentUseCase _updateStudent;
   final DeleteStudentUseCase _deleteStudent;
+  final AddStudentCourseUseCase _addStudentCourse;
+  final GetTopStudentsUseCase _getTopStudents;
 
   Future<void> loadStudents() async {
     emit(
@@ -172,6 +180,57 @@ class StudentsCubit extends Cubit<StudentsState> {
         clearActionMessage: true,
       ),
     );
+  }
+
+  Future<void> addStudentCourse({
+    required String studentId,
+    required String courseId,
+  }) async {
+    emit(
+      state.copyWith(
+        actionStatus: ViewStateStatus.loading,
+        clearActionMessage: true,
+      ),
+    );
+
+    try {
+      await _addStudentCourse(
+        AddStudentCourseParams(studentId: studentId, courseId: courseId),
+      );
+      emit(
+        state.copyWith(
+          actionStatus: ViewStateStatus.success,
+          actionMessage: 'Course added to student successfully.',
+        ),
+      );
+    } catch (_) {
+      emit(
+        state.copyWith(
+          actionStatus: ViewStateStatus.failure,
+          actionMessage: 'Unable to add course to this student right now.',
+        ),
+      );
+    }
+  }
+
+  Future<void> loadTopStudents({int limit = 5}) async {
+    emit(
+      state.copyWith(status: ViewStateStatus.loading, clearErrorMessage: true),
+    );
+
+    try {
+      final students = await _getTopStudents(
+        GetTopStudentsParams(limit: limit),
+      );
+      emit(state.copyWith(status: ViewStateStatus.success, students: students));
+    } catch (_) {
+      emit(
+        state.copyWith(
+          status: ViewStateStatus.failure,
+          errorMessage: 'Unable to load top students right now.',
+        ),
+      );
+    }
   }
 
   List<Student> _replaceStudent(

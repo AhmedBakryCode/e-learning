@@ -4,7 +4,7 @@ import 'package:e_learning/features/auth/domain/entities/app_user.dart';
 import 'package:e_learning/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:e_learning/features/auth/presentation/cubit/auth_state.dart';
 import 'package:e_learning/features/auth/presentation/pages/admin_dashboard_page.dart';
-import 'package:e_learning/features/auth/presentation/pages/role_selection_page.dart';
+import 'package:e_learning/features/auth/presentation/pages/login_page.dart';
 import 'package:e_learning/features/auth/presentation/pages/settings_page.dart';
 import 'package:e_learning/features/auth/presentation/pages/splash_page.dart';
 import 'package:e_learning/features/auth/presentation/pages/student_dashboard_page.dart';
@@ -18,6 +18,7 @@ import 'package:e_learning/features/courses/presentation/pages/video_player_page
 import 'package:e_learning/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:e_learning/features/payment/presentation/pages/payment_page.dart';
 import 'package:e_learning/features/notifications/presentation/pages/notifications_sender_page.dart';
+import 'package:e_learning/features/profile/presentation/pages/profile_page.dart';
 import 'package:e_learning/features/progress/presentation/pages/progress_page.dart';
 import 'package:e_learning/features/students/presentation/pages/admin_student_form_page.dart';
 import 'package:e_learning/features/students/presentation/pages/student_details_page.dart';
@@ -45,8 +46,7 @@ class AppRouter {
       ),
       GoRoute(
         path: loginPath,
-        pageBuilder: (context, state) =>
-            _page(state, const RoleSelectionPage()),
+        pageBuilder: (context, state) => _page(state, const LoginPage()),
       ),
       GoRoute(
         path: adminPath,
@@ -122,6 +122,14 @@ class AppRouter {
             _page(state, const ProgressPage(role: UserRole.admin)),
       ),
       GoRoute(
+        path: '$adminPath/profile',
+        pageBuilder: (context, state) => _page(state, const ProfilePage()),
+      ),
+      GoRoute(
+        path: '$adminPath/settings',
+        pageBuilder: (context, state) => _page(state, const SettingsPage()),
+      ),
+      GoRoute(
         path: studentPath,
         pageBuilder: (context, state) =>
             _page(state, const StudentDashboardPage()),
@@ -174,6 +182,11 @@ class AppRouter {
       GoRoute(
         path: '$studentPath/settings',
         pageBuilder: (context, state) => _page(state, const SettingsPage()),
+      ),
+      GoRoute(
+        path: '$studentPath/profile',
+        pageBuilder: (context, state) =>
+            _page(state, const ProfilePage(role: UserRole.student)),
       ),
       GoRoute(
         path: '$studentPath/progress',

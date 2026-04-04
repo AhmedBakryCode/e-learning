@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:e_learning/app/theme/app_colors.dart';
 import 'package:e_learning/core/constants/design_tokens.dart';
 import 'package:e_learning/core/constants/view_state_status.dart';
@@ -40,8 +42,8 @@ class _AddVideoView extends StatefulWidget {
 class _AddVideoViewState extends State<_AddVideoView> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _videoUrlController = TextEditingController();
   XFile? _selectedVideo;
+  bool _isPreview = false;
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickVideo() async {
@@ -72,7 +74,6 @@ class _AddVideoViewState extends State<_AddVideoView> {
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
-    _videoUrlController.dispose();
     super.dispose();
   }
 
@@ -83,29 +84,61 @@ class _AddVideoViewState extends State<_AddVideoView> {
           previous.actionStatus != current.actionStatus &&
           current.actionStatus != ViewStateStatus.initial,
       listener: (context, state) {
+        final isLoading = state.actionStatus == ViewStateStatus.loading;
         final isSuccess = state.actionStatus == ViewStateStatus.success;
+        final isFailure = state.actionStatus == ViewStateStatus.failure;
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              state.actionMessage ?? (isSuccess ? 'The video has been added successfully.' : 'Unable to add video.'),
+        if (isLoading) {
+          // Show loading snackbar
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Row(
+                children: [
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Text('Uploading video, please wait...'),
+                ],
+              ),
+              duration: Duration(seconds: 10),
             ),
-          ),
-        );
+          );
+          return;
+        }
 
         if (isSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('The video has been added successfully.'),
+            ),
+          );
           context.read<CoursesCubit>().clearActionState();
           context.pop();
           return;
         }
-        context.read<CoursesCubit>().clearActionState();
+
+        if (isFailure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.actionMessage ?? 'Unable to add video.'),
+            ),
+          );
+          context.read<CoursesCubit>().clearActionState();
+        }
       },
       builder: (context, state) {
         final isSaving = state.actionStatus == ViewStateStatus.loading;
 
         return AdaptiveScaffold(
           title: 'Add video',
-          subtitle: 'Add the lesson content with title and description and upload the video file.',
+          subtitle:
+              'Add the lesson content with title and description and upload the video file.',
           body: LayoutBuilder(
             builder: (context, constraints) {
               if (constraints.maxWidth > 900) {
@@ -171,13 +204,17 @@ class _AddVideoViewState extends State<_AddVideoView> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      _selectedVideo == null ? Icons.cloud_upload_outlined : Icons.video_file_outlined,
+                      _selectedVideo == null
+                          ? Icons.cloud_upload_outlined
+                          : Icons.video_file_outlined,
                       size: 42,
                       color: AppColors.primary,
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     Text(
-                      _selectedVideo == null ? 'Click to select a video from your device' : _selectedVideo!.name,
+                      _selectedVideo == null
+                          ? 'Click to select a video from your device'
+                          : _selectedVideo!.name,
                       style: const TextStyle(fontWeight: FontWeight.w600),
                       textAlign: TextAlign.center,
                       maxLines: 2,
@@ -199,10 +236,7 @@ class _AddVideoViewState extends State<_AddVideoView> {
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
-          CustomTextField(
-            controller: _titleController,
-            label: 'Video title',
-          ),
+          CustomTextField(controller: _titleController, label: 'Video title'),
           const SizedBox(height: AppSpacing.md),
           CustomTextField(
             controller: _descriptionController,
@@ -210,10 +244,21 @@ class _AddVideoViewState extends State<_AddVideoView> {
             maxLines: 4,
           ),
           const SizedBox(height: AppSpacing.md),
-          CustomTextField(
-            controller: _videoUrlController,
-            label: 'External link (optional)',
-            keyboardType: TextInputType.url,
+          Row(
+            children: [
+              Checkbox(
+                value: _isPreview,
+                onChanged: isSaving
+                    ? null
+                    : (value) => setState(() => _isPreview = value ?? false),
+              ),
+              Expanded(
+                child: Text(
+                  'Make this a preview video (visible to non-enrolled students)',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: AppSpacing.xl),
           Row(
@@ -229,7 +274,11 @@ class _AddVideoViewState extends State<_AddVideoView> {
                 child: FilledButton(
                   onPressed: isSaving ? null : () => _submit(context),
                   child: isSaving
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
                       : const Text('Add video'),
                 ),
               ),
@@ -254,11 +303,12 @@ class _AddVideoViewState extends State<_AddVideoView> {
   void _submit(BuildContext context) {
     final title = _titleController.text.trim();
     final description = _descriptionController.text.trim();
-    final videoUrl = _videoUrlController.text.trim();
 
-    if (title.isEmpty || description.isEmpty || (_selectedVideo == null && videoUrl.isEmpty)) {
+    if (title.isEmpty || description.isEmpty || _selectedVideo == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Title, description and video are required fields.')),
+        const SnackBar(
+          content: Text('Title, description and video file are required.'),
+        ),
       );
       return;
     }
@@ -268,7 +318,8 @@ class _AddVideoViewState extends State<_AddVideoView> {
         courseId: widget.courseId,
         title: title,
         description: description,
-        videoUrl: _selectedVideo?.path ?? videoUrl,
+        videoFile: File(_selectedVideo!.path),
+        isPreview: _isPreview,
       ),
     );
   }

@@ -1,8 +1,9 @@
 import 'dart:io';
 
 import 'package:e_learning/core/constants/design_tokens.dart';
-import 'package:e_learning/features/students/data/datasources/students_data_source.dart';
+import 'package:e_learning/core/di/service_locator.dart';
 import 'package:e_learning/features/students/data/models/student_model.dart';
+import 'package:e_learning/features/students/domain/usecases/get_top_students_usecase.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -11,7 +12,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 /// A single unified Carousel that shows:
 ///   - Page 0: Founder card
 ///   - Page 1: Co-Founder card
-///   - Page 2+: Top students by completion rate
+///   - Page 2+: Top students by completion rate from API
 class HomeShowcasePageView extends StatefulWidget {
   const HomeShowcasePageView({super.key});
 
@@ -21,20 +22,69 @@ class HomeShowcasePageView extends StatefulWidget {
 
 class _HomeShowcasePageViewState extends State<HomeShowcasePageView> {
   int _currentPage = 0;
+  List<StudentModel> _topStudents = [];
+  bool _isLoading = true;
 
   static const List<Map<String, String>> _founders = [
     {
       'name': 'Mohamed Gomaa',
       'role': 'Founder & CEO',
-      'bio': 'An expert in developing cloud educational systems with more than 10 years of experience in the field of e-learning and artificial intelligence.',
+      'bio':
+          'An expert in developing cloud educational systems with more than 10 years of experience in the field of e-learning and artificial intelligence.',
       'image': 'assets/images/founder.png',
     },
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _fetchTopStudents();
+  }
+
+  Future<void> _fetchTopStudents() async {
+    try {
+      final getTopStudentsUseCase = sl<GetTopStudentsUseCase>();
+      final students = await getTopStudentsUseCase.call(
+        const GetTopStudentsParams(limit: 5),
+      );
+
+      if (mounted) {
+        setState(() {
+          _topStudents = students
+              .map(
+                (s) => StudentModel(
+                  id: s.id,
+                  name: s.name,
+                  email: s.email,
+                  activeCourses: s.activeCourses,
+                  completionRate: s.completionRate,
+                  phoneNumber: s.phoneNumber,
+                  parentPhoneNumber: s.parentPhoneNumber,
+                  profileImageUrl: s.profileImageUrl,
+                ),
+              )
+              .toList();
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        // Log error - could show a snackbar or other UI indicator
+        debugPrint('Failed to load top students: $e');
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final topStudents = MockStudentsDataSource.getTopStudentsByCompletion(limit: 5);
-    final totalPages = _founders.length + topStudents.length;
+    if (_isLoading) {
+      return _buildLoadingState();
+    }
+
+    final totalPages = _founders.length + _topStudents.length;
 
     // Build the items
     final List<Widget> items = [];
@@ -43,10 +93,12 @@ class _HomeShowcasePageViewState extends State<HomeShowcasePageView> {
         items.add(_FounderSlide(founder: _founders[i]));
       } else {
         final studentIndex = i - _founders.length;
-        items.add(_TopStudentSlide(
-          student: topStudents[studentIndex],
-          rank: studentIndex + 1,
-        ));
+        items.add(
+          _TopStudentSlide(
+            student: _topStudents[studentIndex],
+            rank: studentIndex + 1,
+          ),
+        );
       }
     }
 
@@ -74,9 +126,9 @@ class _HomeShowcasePageViewState extends State<HomeShowcasePageView> {
               const SizedBox(width: AppSpacing.sm),
               Text(
                 'Get to know us',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -140,15 +192,63 @@ class _HomeShowcasePageViewState extends State<HomeShowcasePageView> {
       ],
     );
   }
+
+  Widget _buildLoadingState() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Section title
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+          child: Row(
+            children: [
+              Icon(
+                Icons.auto_awesome_rounded,
+                size: 20,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                'Get to know us',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        SizedBox(
+          height: 380,
+          child: Center(child: CircularProgressIndicator()),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Center(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: List.generate(4, (index) {
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(AppRadii.pill),
+                  color: Theme.of(context).colorScheme.outline.withAlpha(40),
+                ),
+              );
+            }),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------
 // Founder / Co-Founder slide
 // ---------------------------------------------------------------------------
 class _FounderSlide extends StatelessWidget {
-  const _FounderSlide({
-    required this.founder,
-  });
+  const _FounderSlide({required this.founder});
 
   final Map<String, String> founder;
 
@@ -171,9 +271,7 @@ class _FounderSlide extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: gradientColors,
         ),
-        border: Border.all(
-          color: primary.withAlpha(isDark ? 30 : 60),
-        ),
+        border: Border.all(color: primary.withAlpha(isDark ? 30 : 60)),
         boxShadow: [
           BoxShadow(
             color: primary.withAlpha(isDark ? 20 : 10),
@@ -229,9 +327,9 @@ class _FounderSlide extends StatelessWidget {
             Text(
               founder['name']!,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
@@ -255,10 +353,7 @@ class _FounderSlide extends StatelessWidget {
 // Top student slide
 // ---------------------------------------------------------------------------
 class _TopStudentSlide extends StatelessWidget {
-  const _TopStudentSlide({
-    required this.student,
-    required this.rank,
-  });
+  const _TopStudentSlide({required this.student, required this.rank});
 
   final StudentModel student;
   final int rank;
@@ -310,9 +405,7 @@ class _TopStudentSlide extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: gradientColors,
         ),
-        border: Border.all(
-          color: primary.withAlpha(isDark ? 30 : 60),
-        ),
+        border: Border.all(color: primary.withAlpha(isDark ? 30 : 60)),
         boxShadow: [
           BoxShadow(
             color: primary.withAlpha(isDark ? 20 : 10),
@@ -349,7 +442,8 @@ class _TopStudentSlide extends StatelessWidget {
                                 width: 82,
                                 height: 82,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => const Icon(Icons.person, size: 40),
+                                errorBuilder: (context, error, stackTrace) =>
+                                    const Icon(Icons.person, size: 40),
                               )
                             : Image.file(
                                 File(student.profileImagePath!),
@@ -422,9 +516,9 @@ class _TopStudentSlide extends StatelessWidget {
             Text(
               student.name,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(

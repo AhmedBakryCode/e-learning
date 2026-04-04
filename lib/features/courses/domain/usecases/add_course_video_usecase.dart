@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:e_learning/core/usecases/usecase.dart';
 import 'package:e_learning/features/courses/domain/entities/course_video.dart';
 import 'package:e_learning/features/courses/domain/repositories/courses_repository.dart';
@@ -8,16 +10,24 @@ class AddCourseVideoParams extends Equatable {
     required this.courseId,
     required this.title,
     required this.description,
-    required this.videoUrl,
+    required this.videoFile,
+    this.isPreview = false,
   });
 
   final String courseId;
   final String title;
   final String description;
-  final String videoUrl;
+  final File videoFile;
+  final bool isPreview;
 
   @override
-  List<Object?> get props => [courseId, title, description, videoUrl];
+  List<Object?> get props => [
+    courseId,
+    title,
+    description,
+    videoFile,
+    isPreview,
+  ];
 }
 
 class AddCourseVideoUseCase
@@ -32,7 +42,8 @@ class AddCourseVideoUseCase
       courseId: params.courseId,
       title: params.title,
       description: params.description,
-      videoUrl: params.videoUrl,
+      videoFile: params.videoFile,
+      isPreview: params.isPreview,
     );
   }
 }

@@ -12,6 +12,21 @@ class VideoWatchProgressModel extends VideoWatchProgress {
     super.lastWatchedAt,
   });
 
+  factory VideoWatchProgressModel.fromJson(Map<String, dynamic> json) {
+    return VideoWatchProgressModel(
+      id: json['id'] as String,
+      studentId: json['studentId'] as String,
+      courseId: json['courseId'] as String,
+      videoId: json['videoId'] as String,
+      watchedSeconds: json['watchedSeconds'] as int,
+      totalDurationSeconds: json['totalDurationSeconds'] as int,
+      isCompleted: json['isCompleted'] as bool,
+      lastWatchedAt: json['lastWatchedAt'] != null
+          ? DateTime.parse(json['lastWatchedAt'] as String)
+          : null,
+    );
+  }
+
   @override
   VideoWatchProgressModel copyWith({
     String? id,

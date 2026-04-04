@@ -28,9 +28,13 @@ class ProgressPage extends StatelessWidget {
 
           return AdaptiveScaffold(
             title: isStudent ? 'Progressive' : 'Progress analytics',
-            subtitle: isStudent ? 'Track your current level and achievements.' : 'Analytical dashboard of student progress.',
+            subtitle: isStudent
+                ? 'Track your current level and achievements.'
+                : 'Analytical dashboard of student progress.',
             selectedIndex: isStudent ? 2 : 0,
-            onNavigationChanged: isStudent ? (index) => _onNavChanged(context, index) : null,
+            onNavigationChanged: isStudent
+                ? (index) => _onNavChanged(context, index)
+                : null,
             navigationDestinations: isStudent ? _getDestinations() : const [],
             body: AnimatedSwitcher(
               duration: AppDurations.medium,
@@ -58,7 +62,8 @@ class ProgressPage extends StatelessWidget {
     if (state.progressItems.isEmpty) {
       return const EmptyStateWidget(
         title: 'There is no progress currently',
-        message: 'Progress will begin to be recorded once you start watching the Courses.',
+        message:
+            'Progress will begin to be recorded once you start watching the Courses.',
         icon: Icons.school_outlined,
       );
     }
@@ -78,7 +83,8 @@ class ProgressPage extends StatelessWidget {
           children: state.progressItems.map((progress) {
             return AppCard(
               title: progress.courseTitle,
-              subtitle: 'Lesson ${progress.currentLesson} from ${progress.totalLessons}',
+              subtitle:
+                  'Lesson ${progress.currentLesson} from ${progress.totalLessons}',
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -103,17 +109,43 @@ class ProgressPage extends StatelessWidget {
 
   void _onNavChanged(BuildContext context, int index) {
     switch (index) {
-      case 0: context.go('/student'); break;
-      case 1: context.go('/student/courses'); break;
-      case 2: context.go('/student/progress'); break;
+      case 0:
+        context.go('/student');
+        break;
+      case 1:
+        context.go('/student/courses');
+        break;
+      case 2:
+        context.go('/student/progress');
+        break;
+      case 3:
+        context.go('/student/settings');
+        break;
     }
   }
 
   List<NavigationDestination> _getDestinations() {
     return const [
-      NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Dashboard'),
-      NavigationDestination(icon: Icon(Icons.menu_book_outlined), label: 'My Courses'),
-      NavigationDestination(icon: Icon(Icons.analytics_outlined), label: 'Progressive'),
+      NavigationDestination(
+        icon: Icon(Icons.home_outlined),
+        selectedIcon: Icon(Icons.home_rounded),
+        label: 'Dashboard',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.menu_book_outlined),
+        selectedIcon: Icon(Icons.menu_book_rounded),
+        label: 'My Courses',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.analytics_outlined),
+        selectedIcon: Icon(Icons.analytics_rounded),
+        label: 'Progressive',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.settings_outlined),
+        selectedIcon: Icon(Icons.settings_rounded),
+        label: 'Settings',
+      ),
     ];
   }
 }

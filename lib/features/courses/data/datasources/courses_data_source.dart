@@ -1,4 +1,9 @@
+import 'dart:io';
+
+import 'package:dio/dio.dart';
 import 'package:e_learning/core/constants/design_tokens.dart';
+import 'package:e_learning/core/constants/endpoint_constants.dart';
+import 'package:e_learning/core/network/api_service.dart';
 import 'package:e_learning/features/auth/domain/entities/app_user.dart';
 import 'package:e_learning/features/courses/data/models/course_model.dart';
 import 'package:e_learning/features/courses/data/models/course_video_model.dart';
@@ -37,8 +42,125 @@ abstract class CoursesDataSource {
     required String courseId,
     required String title,
     required String description,
-    required String videoUrl,
+    required File videoFile,
+    required bool isPreview,
   });
+}
+
+class RemoteCoursesDataSource implements CoursesDataSource {
+  const RemoteCoursesDataSource({required ApiService apiService})
+    : _apiService = apiService;
+
+  final ApiService _apiService;
+
+  @override
+  Future<List<CourseModel>> getCourses({required UserRole role}) async {
+    final response = await _apiService.get('/courses');
+    final List<dynamic> data = response.data;
+    return data.map((json) => CourseModel.fromJson(json)).toList();
+  }
+
+  @override
+  Future<List<CourseModel>> getFeaturedCourses() async {
+    final response = await _apiService.get('/courses');
+    final List<dynamic> data = response.data;
+    return data
+        .map((json) => CourseModel.fromJson(json))
+        .where((course) => course.isFeatured)
+        .toList();
+  }
+
+  @override
+  Future<CourseModel?> getCourseById(String id) async {
+    final response = await _apiService.get('/courses/$id');
+    return CourseModel.fromJson(response.data);
+  }
+
+  @override
+  Future<CourseModel> createCourse({
+    required String title,
+    required String description,
+    required String instructorName,
+    required String category,
+    required String level,
+    required bool isPublished,
+  }) async {
+    final response = await _apiService.post(
+      '/courses',
+      data: {
+        'title': title,
+        'description': description,
+        'instructorName': instructorName,
+        'category': category,
+        'level': level,
+        'isPublished': isPublished,
+      },
+    );
+    return CourseModel.fromJson(response.data);
+  }
+
+  @override
+  Future<CourseModel> updateCourse({
+    required String id,
+    required String title,
+    required String description,
+    required String instructorName,
+    required String category,
+    required String level,
+    required bool isPublished,
+  }) async {
+    final response = await _apiService.put(
+      '/courses/$id',
+      data: {
+        'title': title,
+        'description': description,
+        'instructorName': instructorName,
+        'category': category,
+        'level': level,
+        'isPublished': isPublished,
+      },
+    );
+    return CourseModel.fromJson(response.data);
+  }
+
+  @override
+  Future<void> deleteCourse(String id) async {
+    await _apiService.delete('/courses/$id');
+  }
+
+  @override
+  Future<List<CourseVideoModel>> getCourseVideos(String courseId) async {
+    final response = await _apiService.get(
+      EndpointConstants.courseVideos.replaceFirst('{courseId}', courseId),
+    );
+    final List<dynamic> data = response.data;
+    return data.map((json) => CourseVideoModel.fromJson(json)).toList();
+  }
+
+  @override
+  Future<CourseVideoModel> addCourseVideo({
+    required String courseId,
+    required String title,
+    required String description,
+    required File videoFile,
+    required bool isPreview,
+  }) async {
+    final formData = FormData.fromMap({
+      'Title': title,
+      'Description': description,
+      'IsPreview': isPreview,
+      'Video': await MultipartFile.fromFile(
+        videoFile.path,
+        filename: videoFile.path.split('/').last,
+      ),
+    });
+
+    final response = await _apiService.uploadWithTimeout(
+      EndpointConstants.courseVideos.replaceFirst('{courseId}', courseId),
+      data: formData,
+    );
+    return CourseVideoModel.fromJson(response.data);
+  }
 }
 
 class MockCoursesDataSource implements CoursesDataSource {
@@ -531,7 +653,8 @@ class MockCoursesDataSource implements CoursesDataSource {
     required String courseId,
     required String title,
     required String description,
-    required String videoUrl,
+    required File videoFile,
+    required bool isPreview,
   }) async {
     await Future<void>.delayed(AppDurations.medium);
 
@@ -545,9 +668,11 @@ class MockCoursesDataSource implements CoursesDataSource {
       courseId: courseId,
       title: title,
       description: description,
-      videoUrl: videoUrl,
+      videoUrl:
+          'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
       duration: '10:00',
       progress: 0,
+      isPreview: isPreview,
       isUploaded: true,
     );
 

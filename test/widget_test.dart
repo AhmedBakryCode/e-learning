@@ -12,8 +12,8 @@ void main() {
     await tester.pumpWidget(const ELearningApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('Mock sign in'), findsOneWidget);
-    expect(find.text('Continue as Admin'), findsOneWidget);
-    expect(find.text('Continue as Student'), findsOneWidget);
+    expect(find.text('Demo login'), findsOneWidget);
+    expect(find.text('Log in as a teacher'), findsOneWidget);
+    expect(find.text('Log in as a student'), findsOneWidget);
   });
 }

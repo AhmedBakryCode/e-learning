@@ -1,4 +1,5 @@
 import 'package:e_learning/features/auth/data/datasources/auth_data_source.dart';
+import 'package:e_learning/features/auth/data/models/login_response_model.dart';
 import 'package:e_learning/features/auth/domain/entities/app_user.dart';
 import 'package:e_learning/features/auth/domain/repositories/auth_repository.dart';
 
@@ -16,6 +17,12 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<AppUser> signInAsRole(UserRole role) {
     return _dataSource.signInAsRole(role);
+  }
+
+  @override
+  Future<LoginResponseModel> login(String email, String password) async {
+    final response = await _dataSource.login(email, password);
+    return response;
   }
 
   @override

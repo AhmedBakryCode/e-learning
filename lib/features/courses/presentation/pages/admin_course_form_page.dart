@@ -44,8 +44,8 @@ class _AdminCourseFormViewState extends State<_AdminCourseFormView> {
   late final TextEditingController _titleController;
   late final TextEditingController _instructorController;
   late final TextEditingController _descriptionController;
-  String _level = 'Intermediate';
-  String _category = 'Development';
+  String _level = 'beginner';
+  String _category = 'design';
   bool _isPublished = false;
 
   bool get _isEdit => widget.courseId != null;
@@ -58,8 +58,12 @@ class _AdminCourseFormViewState extends State<_AdminCourseFormView> {
         : MockCoursesDataSource.findCourse(widget.courseId!);
 
     _titleController = TextEditingController(text: course?.title ?? '');
-    _instructorController = TextEditingController(text: course?.instructorName ?? 'Ahmed Mohamed');
-    _descriptionController = TextEditingController(text: course?.description ?? '');
+    _instructorController = TextEditingController(
+      text: course?.instructorName ?? 'Ahmed Mohamed',
+    );
+    _descriptionController = TextEditingController(
+      text: course?.description ?? '',
+    );
     _level = course?.level ?? _level;
     _category = course?.category ?? _category;
     _isPublished = course?.isPublished ?? false;
@@ -84,7 +88,9 @@ class _AdminCourseFormViewState extends State<_AdminCourseFormView> {
       listener: (context, state) {
         if (state.actionStatus == ViewStateStatus.success) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('The Course has been saved successfully.')),
+            const SnackBar(
+              content: Text('The Course has been saved successfully.'),
+            ),
           );
           context.pop();
         }
@@ -165,10 +171,7 @@ class _AdminCourseFormViewState extends State<_AdminCourseFormView> {
               const SizedBox(height: AppSpacing.lg),
               _buildImagePlaceholder(),
               const SizedBox(height: AppSpacing.lg),
-              CustomTextField(
-                controller: _titleController,
-                label: 'Title',
-              ),
+              CustomTextField(controller: _titleController, label: 'Title'),
               const SizedBox(height: AppSpacing.md),
               CustomTextField(
                 controller: _instructorController,
@@ -179,23 +182,37 @@ class _AdminCourseFormViewState extends State<_AdminCourseFormView> {
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      value: _category,
+                      key: ValueKey(_category),
+                      initialValue: _category,
                       isExpanded: true,
-                      items: _categories.entries.map((e) => 
-                        DropdownMenuItem(value: e.key, child: Text(e.value))
-                      ).toList(),
+                      items: _categories.entries
+                          .map(
+                            (e) => DropdownMenuItem(
+                              value: e.key,
+                              child: Text(e.value),
+                            ),
+                          )
+                          .toList(),
                       onChanged: (v) => setState(() => _category = v!),
-                      decoration: const InputDecoration(labelText: 'Classification'),
+                      decoration: const InputDecoration(
+                        labelText: 'Classification',
+                      ),
                     ),
                   ),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      value: _level,
+                      key: ValueKey(_level),
+                      initialValue: _level,
                       isExpanded: true,
-                      items: _levels.entries.map((e) => 
-                        DropdownMenuItem(value: e.key, child: Text(e.value))
-                      ).toList(),
+                      items: _levels.entries
+                          .map(
+                            (e) => DropdownMenuItem(
+                              value: e.key,
+                              child: Text(e.value),
+                            ),
+                          )
+                          .toList(),
                       onChanged: (v) => setState(() => _level = v!),
                       decoration: const InputDecoration(labelText: 'Level'),
                     ),
@@ -214,7 +231,9 @@ class _AdminCourseFormViewState extends State<_AdminCourseFormView> {
                 value: _isPublished,
                 onChanged: (v) => setState(() => _isPublished = v),
                 title: const Text('Instant publishing'),
-                subtitle: const Text('The Course will appear to students immediately after saving if it is activated.'),
+                subtitle: const Text(
+                  'The Course will appear to students immediately after saving if it is activated.',
+                ),
               ),
             ],
           ),
@@ -232,9 +251,15 @@ class _AdminCourseFormViewState extends State<_AdminCourseFormView> {
             Expanded(
               child: FilledButton(
                 onPressed: isSaving ? null : () => _submit(context),
-                child: isSaving 
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                    : Text(_isEdit ? 'Save modifications' : 'Create the Course'),
+                child: isSaving
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(
+                        _isEdit ? 'Save modifications' : 'Create the Course',
+                      ),
               ),
             ),
           ],
@@ -261,27 +286,44 @@ class _AdminCourseFormViewState extends State<_AdminCourseFormView> {
                 scale: 1,
               ),
             ),
-            child: _titleController.text.isEmpty 
-                ? const Center(child: Icon(Icons.image_outlined, size: 32, color: AppColors.primary))
+            child: _titleController.text.isEmpty
+                ? const Center(
+                    child: Icon(
+                      Icons.image_outlined,
+                      size: 32,
+                      color: AppColors.primary,
+                    ),
+                  )
                 : null,
           ),
           const SizedBox(height: AppSpacing.md),
           Text(
-            _titleController.text.isEmpty ? 'The Course title appears here' : _titleController.text,
+            _titleController.text.isEmpty
+                ? 'The Course title appears here'
+                : _titleController.text,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            _instructorController.text.isEmpty ? 'Instructor' : 'By ${_instructorController.text}',
+            _instructorController.text.isEmpty
+                ? 'Instructor'
+                : 'By ${_instructorController.text}',
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: AppSpacing.sm),
           Wrap(
             spacing: AppSpacing.xs,
             children: [
-              StatusChip(label: ArabicMapper.category(_category), color: AppColors.primary),
-              StatusChip(label: ArabicMapper.level(_level), color: AppColors.secondary),
-              if (_isPublished) const StatusChip(label: 'Published', color: AppColors.success),
+              StatusChip(
+                label: ArabicMapper.category(_category),
+                color: AppColors.primary,
+              ),
+              StatusChip(
+                label: ArabicMapper.level(_level),
+                color: AppColors.secondary,
+              ),
+              if (_isPublished)
+                const StatusChip(label: 'Published', color: AppColors.success),
             ],
           ),
         ],
@@ -303,7 +345,10 @@ class _AdminCourseFormViewState extends State<_AdminCourseFormView> {
           children: [
             Icon(Icons.add_photo_alternate_outlined, color: AppColors.primary),
             SizedBox(height: AppSpacing.xs),
-            Text('Change cover photo', style: TextStyle(color: AppColors.primary, fontSize: 12)),
+            Text(
+              'Change cover photo',
+              style: TextStyle(color: AppColors.primary, fontSize: 12),
+            ),
           ],
         ),
       ),
@@ -313,33 +358,39 @@ class _AdminCourseFormViewState extends State<_AdminCourseFormView> {
   Widget _buildGuidelinesCard() {
     return AppCard(
       title: 'Publication guidelines and detailed information',
-      subtitle: 'Follow these rules to ensure an outstanding and professional learning experience.',
+      subtitle:
+          'Follow these rules to ensure an outstanding and professional learning experience.',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _GuidelineRow(
-            icon: Icons.image_rounded, 
-            text: 'Cover image: Use PNG or JPG format with a resolution of at least 1280x720 pixels. Make sure that the image expresses the content of the Course, and avoid heavy writing above it so that it appears well in the mini menus.'
+            icon: Icons.image_rounded,
+            text:
+                'Cover image: Use PNG or JPG format with a resolution of at least 1280x720 pixels. Make sure that the image expresses the content of the Course, and avoid heavy writing above it so that it appears well in the mini menus.',
           ),
           const SizedBox(height: AppSpacing.md),
           _GuidelineRow(
-            icon: Icons.title_rounded, 
-            text: 'Educational title: The title must be clear and concise (between 30 to 60 characters). Start with powerful words like “learn,” “master,” or “the complete guide to...” to capture students\' attention and interest.'
+            icon: Icons.title_rounded,
+            text:
+                'Educational title: The title must be clear and concise (between 30 to 60 characters). Start with powerful words like “learn,” “master,” or “the complete guide to...” to capture students\' attention and interest.',
           ),
           const SizedBox(height: AppSpacing.md),
           _GuidelineRow(
-            icon: Icons.description_rounded, 
-            text: 'Comprehensive description: Do not limit yourself to one line. Write what the student will learn, what the prerequisites are, and who this Course is for. A good description turns a visitor into a registered student immediately and reduces repetitive inquiries.'
+            icon: Icons.description_rounded,
+            text:
+                'Comprehensive description: Do not limit yourself to one line. Write what the student will learn, what the prerequisites are, and who this Course is for. A good description turns a visitor into a registered student immediately and reduces repetitive inquiries.',
           ),
           const SizedBox(height: AppSpacing.md),
           _GuidelineRow(
-            icon: Icons.category_outlined, 
-            text: 'Classification and level: Choose the classification that is closest to your field precisely. Determining the level (beginner/intermediate) helps the system suggest the Course to suitable students and ensures positive evaluations in the future.'
+            icon: Icons.category_outlined,
+            text:
+                'Classification and level: Choose the classification that is closest to your field precisely. Determining the level (beginner/intermediate) helps the system suggest the Course to suitable students and ensures positive evaluations in the future.',
           ),
           const SizedBox(height: AppSpacing.md),
           _GuidelineRow(
-            icon: Icons.video_collection_rounded, 
-            text: 'Structure lessons: Organize your videos into logical sections. It is preferable to add a free welcome video as the first lesson to familiarize students with your style before actually starting complex educational lessons.'
+            icon: Icons.video_collection_rounded,
+            text:
+                'Structure lessons: Organize your videos into logical sections. It is preferable to add a free welcome video as the first lesson to familiarize students with your style before actually starting complex educational lessons.',
           ),
         ],
       ),
@@ -348,63 +399,82 @@ class _AdminCourseFormViewState extends State<_AdminCourseFormView> {
 
   void _submit(BuildContext context) {
     if (_titleController.text.isEmpty || _instructorController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Basic fields are required.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Basic fields are required.')),
+      );
       return;
     }
 
     if (_isEdit) {
-      context.read<CoursesCubit>().updateCourse(UpdateCourseParams(
-        id: widget.courseId!,
-        title: _titleController.text,
-        description: _descriptionController.text,
-        instructorName: _instructorController.text,
-        category: _category,
-        level: _level,
-        isPublished: _isPublished,
-      ));
+      context.read<CoursesCubit>().updateCourse(
+        UpdateCourseParams(
+          id: widget.courseId!,
+          title: _titleController.text,
+          description: _descriptionController.text,
+          instructorName: _instructorController.text,
+          category: _category,
+          level: _level,
+          isPublished: _isPublished,
+        ),
+      );
     } else {
-      context.read<CoursesCubit>().createCourse(CreateCourseParams(
-        title: _titleController.text,
-        description: _descriptionController.text,
-        instructorName: _instructorController.text,
-        category: _category,
-        level: _level,
-        isPublished: _isPublished,
-      ));
+      context.read<CoursesCubit>().createCourse(
+        CreateCourseParams(
+          title: _titleController.text,
+          description: _descriptionController.text,
+          instructorName: _instructorController.text,
+          category: _category,
+          level: _level,
+          isPublished: _isPublished,
+        ),
+      );
     }
   }
 
   void _onNavChanged(BuildContext context, int index) {
-     switch (index) {
-      case 0: context.go('/admin'); break;
-      case 1: context.go('/admin/courses'); break;
-      case 2: context.go('/admin/students'); break;
-      case 3: context.go('/admin/notifications/send'); break;
+    switch (index) {
+      case 0:
+        context.go('/admin');
+        break;
+      case 1:
+        context.go('/admin/courses');
+        break;
+      case 2:
+        context.go('/admin/students');
+        break;
+      case 3:
+        context.go('/admin/notifications/send');
+        break;
     }
   }
 
   List<NavigationDestination> _getDestinations() {
     return const [
-      NavigationDestination(icon: Icon(Icons.dashboard_outlined), label: 'Dashboard'),
-      NavigationDestination(icon: Icon(Icons.menu_book_outlined), label: 'Courses'),
-      NavigationDestination(icon: Icon(Icons.groups_outlined), label: 'Students'),
+      NavigationDestination(
+        icon: Icon(Icons.dashboard_outlined),
+        label: 'Dashboard',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.menu_book_outlined),
+        label: 'Courses',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.groups_outlined),
+        label: 'Students',
+      ),
       NavigationDestination(icon: Icon(Icons.send_outlined), label: 'Send'),
     ];
   }
 
   static const _categories = {
-    'Development': 'Software development',
-    'Design': 'Interface design',
-    'Analytics': 'Data analysis',
-    'AI': 'Artificial intelligence',
-    'Teaching': 'Teaching methods',
+    'development': 'Software development',
+    'design': 'Interface design',
+    'analytics': 'Data analysis',
+    'ai': 'Artificial intelligence',
+    'teaching': 'Teaching methods',
   };
 
-  static const _levels = {
-    'Beginner': 'Beginner',
-    'Intermediate': 'Intermediate',
-    'Advanced': 'Advanced',
-  };
+  static const _levels = {'beginner': 'Beginner', 'advanced': 'Advanced'};
 }
 
 class _GuidelineRow extends StatelessWidget {
@@ -419,7 +489,9 @@ class _GuidelineRow extends StatelessWidget {
       children: [
         Icon(icon, size: 24, color: AppColors.primary),
         const SizedBox(width: AppSpacing.sm),
-        Expanded(child: Text(text, style: Theme.of(context).textTheme.bodyMedium)),
+        Expanded(
+          child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
+        ),
       ],
     );
   }

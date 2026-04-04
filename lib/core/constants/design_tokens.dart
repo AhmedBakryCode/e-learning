@@ -41,6 +41,3 @@ abstract final class AppDurations {
   static const long = Duration(milliseconds: 700);
 }
 
-abstract final class AppDefaults {
-  static const String apiBaseUrl = 'https://api.elearning.dev';
-}

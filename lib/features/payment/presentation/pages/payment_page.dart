@@ -34,74 +34,82 @@ class _PaymentPageState extends State<PaymentPage> {
 
           return AdaptiveScaffold(
             title: 'Complete payment',
-            subtitle: 'Confirm payment to participate in the Course and start immediately.',
+            subtitle:
+                'Confirm payment to participate in the Course and start immediately.',
             body: state.status == ViewStateStatus.loading
                 ? const Center(child: CircularProgressIndicator())
                 : course == null
-                    ? const Center(child: Text('Course not available'))
-                    : ListView(
-                        padding: const EdgeInsets.all(AppSpacing.pagePadding),
-                        children: [
-                          _OrderSummaryCard(course: course),
-                          const SizedBox(height: AppSpacing.sectionGap),
-                          Text(
-                            'Choose the payment method',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          const SizedBox(height: AppSpacing.lg),
-                          _PaymentMethodTile(
-                            id: 'card',
-                            title: 'Bank card (Visa / MasterCard)',
-                            icon: Icons.credit_card_rounded,
-                            selectedId: _selectedMethod,
-                            onChanged: (id) => setState(() => _selectedMethod = id),
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-                          _PaymentMethodTile(
-                            id: 'fawry',
-                            title: 'Fawry',
-                            icon: Icons.payments_rounded,
-                            selectedId: _selectedMethod,
-                            onChanged: (id) => setState(() => _selectedMethod = id),
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-                          _PaymentMethodTile(
-                            id: 'vodafone',
-                            title: 'Vodafone Cash',
-                            icon: Icons.phone_android_rounded,
-                            selectedId: _selectedMethod,
-                            onChanged: (id) => setState(() => _selectedMethod = id),
-                          ),
-                          const SizedBox(height: AppSpacing.huge),
-                          SizedBox(
-                            width: double.infinity,
-                            height: 56,
-                            child: FilledButton(
-                              onPressed: _isProcessing ? null : () => _processPayment(context),
-                              style: FilledButton.styleFrom(
-                                backgroundColor: AppColors.secondary,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.xl)),
-                              ),
-                              child: _isProcessing
-                                  ? const CircularProgressIndicator(color: Colors.white)
-                                  : Text(
-                                      'Payment confirmation (1500 EGP)',
-                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                    ),
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.lg),
-                          const Center(
-                            child: Text(
-                              'All transactions are encrypted and completely secure.',
-                              style: TextStyle(color: AppColors.muted),
-                            ),
-                          ),
-                        ],
+                ? const Center(child: Text('Course not available'))
+                : ListView(
+                    padding: const EdgeInsets.all(AppSpacing.pagePadding),
+                    children: [
+                      _OrderSummaryCard(course: course),
+                      const SizedBox(height: AppSpacing.sectionGap),
+                      Text(
+                        'Choose the payment method',
+                        style: Theme.of(context).textTheme.titleLarge,
                       ),
+                      const SizedBox(height: AppSpacing.lg),
+                      _PaymentMethodTile(
+                        id: 'card',
+                        title: 'Bank card (Visa / MasterCard)',
+                        icon: Icons.credit_card_rounded,
+                        selectedId: _selectedMethod,
+                        onChanged: (id) => setState(() => _selectedMethod = id),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      _PaymentMethodTile(
+                        id: 'fawry',
+                        title: 'Fawry',
+                        icon: Icons.payments_rounded,
+                        selectedId: _selectedMethod,
+                        onChanged: (id) => setState(() => _selectedMethod = id),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      _PaymentMethodTile(
+                        id: 'vodafone',
+                        title: 'Vodafone Cash',
+                        icon: Icons.phone_android_rounded,
+                        selectedId: _selectedMethod,
+                        onChanged: (id) => setState(() => _selectedMethod = id),
+                      ),
+                      const SizedBox(height: AppSpacing.huge),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: FilledButton(
+                          onPressed: _isProcessing
+                              ? null
+                              : () => _processPayment(context),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: AppColors.secondary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(AppRadii.xl),
+                            ),
+                          ),
+                          child: _isProcessing
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white,
+                                )
+                              : Text(
+                                  'Payment confirmation (1500 EGP)',
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      const Center(
+                        child: Text(
+                          'All transactions are encrypted and completely secure.',
+                          style: TextStyle(color: AppColors.muted),
+                        ),
+                      ),
+                    ],
+                  ),
           );
         },
       ),
@@ -111,34 +119,42 @@ class _PaymentPageState extends State<PaymentPage> {
   Future<void> _processPayment(BuildContext context) async {
     setState(() => _isProcessing = true);
 
+    // Get studentId before async gap
+    final studentId = context.read<AuthCubit>().state.user?.id;
+
     // Simulate network delay
     await Future<void>.delayed(const Duration(seconds: 2));
 
     if (!mounted) return;
 
-    final studentId = context.read<AuthCubit>().state.user?.id;
     if (studentId != null) {
-        // Here we enroll the student manually as if the payment was successful
-        // In a real app, this would be done on the server-side after payment confirmation
-        await sl<EnrollInCourseUseCase>()(
-          EnrollInCourseParams(studentId: studentId, courseId: widget.courseId),
-        );
+      // Here we enroll the student manually as if the payment was successful
+      // In a real app, this would be done on the server-side after payment confirmation
+      await sl<EnrollInCourseUseCase>()(
+        EnrollInCourseParams(studentId: studentId, courseId: widget.courseId),
+      );
     }
 
     if (!mounted) return;
-    
-    _showSuccessDialog(context);
+
+    _showSuccessDialog();
   }
 
-  void _showSuccessDialog(BuildContext context) {
+  void _showSuccessDialog() {
     showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) {
         return AlertDialog(
-          icon: const Icon(Icons.check_circle_outline_rounded, size: 64, color: AppColors.success),
+          icon: const Icon(
+            Icons.check_circle_outline_rounded,
+            size: 64,
+            color: AppColors.success,
+          ),
           title: const Text('Payment completed successfully!'),
-          content: const Text('Congratulations! You have successfully subscribed to the Course. You can now start following the lessons.'),
+          content: const Text(
+            'Congratulations! You have successfully subscribed to the Course. You can now start following the lessons.',
+          ),
           actions: [
             FilledButton(
               onPressed: () {
@@ -173,19 +189,31 @@ class _OrderSummaryCard extends StatelessWidget {
                   color: AppColors.primary.withAlpha(20),
                   borderRadius: BorderRadius.circular(AppRadii.lg),
                 ),
-                child: const Icon(Icons.menu_book_rounded, color: AppColors.primary),
+                child: const Icon(
+                  Icons.menu_book_rounded,
+                  color: AppColors.primary,
+                ),
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(course.title, style: Theme.of(context).textTheme.titleMedium),
-                    Text('${course.totalLessons} Lesson', style: Theme.of(context).textTheme.bodySmall),
+                    Text(
+                      course.title,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    Text(
+                      '${course.totalLessons} Lesson',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                   ],
                 ),
               ),
-              const Text('1500 EGP', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text(
+                '1500 EGP',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ],
           ),
           const Divider(height: AppSpacing.xxl),
@@ -239,19 +267,24 @@ class _PaymentMethodTile extends StatelessWidget {
             width: isSelected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(AppRadii.xl),
-          color: isSelected ? AppColors.secondary.withAlpha(10) : Colors.transparent,
+          color: isSelected
+              ? AppColors.secondary.withAlpha(10)
+              : Colors.transparent,
         ),
         child: Row(
           children: [
-            Icon(icon, color: isSelected ? AppColors.secondary : AppColors.muted),
+            Icon(
+              icon,
+              color: isSelected ? AppColors.secondary : AppColors.muted,
+            ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Text(
                 title,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: isSelected ? AppColors.secondary : AppColors.ink,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    ),
+                  color: isSelected ? AppColors.secondary : AppColors.ink,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                ),
               ),
             ),
             if (isSelected)

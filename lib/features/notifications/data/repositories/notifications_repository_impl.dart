@@ -33,4 +33,9 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
       targetCourseId: targetCourseId,
     );
   }
+
+  @override
+  Future<void> markAsRead(String notificationId) {
+    return _dataSource.markAsRead(notificationId);
+  }
 }

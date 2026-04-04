@@ -1,4 +1,6 @@
 import 'package:e_learning/core/constants/design_tokens.dart';
+import 'package:e_learning/core/constants/endpoint_constants.dart';
+import 'package:e_learning/core/network/api_service.dart';
 import 'package:e_learning/features/courses/data/datasources/courses_data_source.dart';
 import 'package:e_learning/features/progress/data/models/learning_progress_model.dart';
 import 'package:e_learning/features/progress/data/models/video_watch_progress_model.dart';
@@ -499,6 +501,121 @@ class MockProgressDataSource implements ProgressDataSource {
       return 0;
     }
 
+    final minutes = int.tryParse(parts[0]) ?? 0;
+    final seconds = int.tryParse(parts[1]) ?? 0;
+    return minutes * 60 + seconds;
+  }
+}
+
+class RemoteProgressDataSource implements ProgressDataSource {
+  const RemoteProgressDataSource({required ApiService apiService})
+    : _apiService = apiService;
+
+  final ApiService _apiService;
+
+  @override
+  Future<List<LearningProgressModel>> getProgressItems({
+    String? studentId,
+  }) async {
+    final response = await _apiService.get(
+      EndpointConstants.progress,
+      queryParameters: studentId != null ? {'studentId': studentId} : null,
+    );
+    final List<dynamic> data = response.data;
+    return data.map((json) => LearningProgressModel.fromJson(json)).toList();
+  }
+
+  @override
+  Future<LearningProgressModel> enrollInCourse({
+    required String studentId,
+    required String courseId,
+  }) async {
+    final response = await _apiService.post(
+      EndpointConstants.progressEnroll,
+      data: {'studentId': studentId, 'courseId': courseId},
+    );
+    return LearningProgressModel.fromJson(response.data);
+  }
+
+  @override
+  Future<LearningProgressModel> updateProgress({
+    required String progressId,
+    required double completionPercent,
+    required int currentLesson,
+  }) async {
+    final response = await _apiService.put(
+      EndpointConstants.progressById.replaceFirst('{progressId}', progressId),
+      data: {
+        'completionPercent': completionPercent,
+        'currentLesson': currentLesson,
+      },
+    );
+    return LearningProgressModel.fromJson(response.data);
+  }
+
+  @override
+  Future<List<VideoWatchProgressModel>> getVideoProgress({
+    required String studentId,
+    required String courseId,
+  }) async {
+    // Video progress is embedded in course videos endpoint
+    final response = await _apiService.get(
+      EndpointConstants.courseVideos.replaceFirst('{courseId}', courseId),
+    );
+    final List<dynamic> data = response.data;
+    return data.map((json) {
+      final videoId = json['id'] as String;
+      final progress = json['progress'] as num? ?? 0;
+      final duration = json['duration'] as String? ?? '00:00';
+      return VideoWatchProgressModel(
+        id: 'progress-$studentId-$courseId-$videoId',
+        studentId: studentId,
+        courseId: courseId,
+        videoId: videoId,
+        watchedSeconds: (progress * _durationToSeconds(duration)).round(),
+        totalDurationSeconds: _durationToSeconds(duration),
+        isCompleted: progress >= 1.0,
+      );
+    }).toList();
+  }
+
+  @override
+  Future<VideoWatchProgressModel> saveVideoProgress({
+    required String studentId,
+    required String courseId,
+    required String videoId,
+    required int watchedSeconds,
+  }) async {
+    final response = await _apiService.post(
+      EndpointConstants.progressVideoSave,
+      data: {
+        'studentId': studentId,
+        'courseId': courseId,
+        'videoId': videoId,
+        'watchedSeconds': watchedSeconds,
+      },
+    );
+    return VideoWatchProgressModel.fromJson(response.data);
+  }
+
+  @override
+  Future<VideoWatchProgressModel> markVideoCompleted({
+    required String studentId,
+    required String courseId,
+    required String videoId,
+  }) async {
+    final response = await _apiService.post(
+      EndpointConstants.progressVideoComplete,
+      data: {'studentId': studentId, 'courseId': courseId, 'videoId': videoId},
+    );
+    return VideoWatchProgressModel.fromJson(response.data);
+  }
+
+  static int _durationToSeconds(String duration) {
+    final parts = duration.split(':');
+    if (parts.length != 2) {
+      return 0;
+    }
     final minutes = int.tryParse(parts[0]) ?? 0;
     final seconds = int.tryParse(parts[1]) ?? 0;
     return minutes * 60 + seconds;

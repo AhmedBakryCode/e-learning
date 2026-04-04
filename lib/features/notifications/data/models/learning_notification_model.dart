@@ -9,7 +9,23 @@ class LearningNotificationModel extends LearningNotification {
     required super.isRead,
     super.audienceLabel,
     super.zoomMeetingLink,
+    super.targetCourseId,
+    super.createdAt,
   });
+
+  factory LearningNotificationModel.fromJson(Map<String, dynamic> json) {
+    return LearningNotificationModel(
+      id: json['id'] as String,
+      title: json['title'] as String,
+      message: json['message'] as String,
+      timeLabel: json['timeLabel'] as String? ?? '',
+      isRead: json['isRead'] as bool? ?? false,
+      audienceLabel: json['audienceLabel'] as String? ?? 'All students',
+      zoomMeetingLink: json['zoomMeetingLink'] as String?,
+      targetCourseId: json['targetCourseId'] as String?,
+      createdAt: json['createdAt'] as String?,
+    );
+  }
 
   @override
   LearningNotificationModel copyWith({
@@ -20,6 +36,8 @@ class LearningNotificationModel extends LearningNotification {
     bool? isRead,
     String? audienceLabel,
     String? zoomMeetingLink,
+    String? targetCourseId,
+    String? createdAt,
   }) {
     return LearningNotificationModel(
       id: id ?? this.id,
@@ -29,6 +47,8 @@ class LearningNotificationModel extends LearningNotification {
       isRead: isRead ?? this.isRead,
       audienceLabel: audienceLabel ?? this.audienceLabel,
       zoomMeetingLink: zoomMeetingLink ?? this.zoomMeetingLink,
+      targetCourseId: targetCourseId ?? this.targetCourseId,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 }

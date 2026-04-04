@@ -14,6 +14,21 @@ class LearningProgressModel extends LearningProgress {
     super.lastVideoTitle,
   });
 
+  factory LearningProgressModel.fromJson(Map<String, dynamic> json) {
+    return LearningProgressModel(
+      id: json['id'] as String,
+      studentId: json['studentId'] as String,
+      courseId: json['courseId'] as String,
+      courseTitle: json['courseTitle'] as String,
+      completionPercent: (json['completionPercent'] as num).toDouble(),
+      currentLesson: json['currentLesson'] as int,
+      totalLessons: json['totalLessons'] as int,
+      watchedVideos: (json['watchedVideos'] as num?)?.toInt() ?? 0,
+      lastVideoId: json['lastVideoId'] as String?,
+      lastVideoTitle: json['lastVideoTitle'] as String?,
+    );
+  }
+
   @override
   LearningProgressModel copyWith({
     String? id,

@@ -11,4 +11,6 @@ abstract class NotificationsRepository {
     required String zoomMeetingLink,
     String? targetCourseId,
   });
+
+  Future<void> markAsRead(String notificationId);
 }

@@ -1,4 +1,6 @@
 import 'package:e_learning/core/constants/design_tokens.dart';
+import 'package:e_learning/core/constants/endpoint_constants.dart';
+import 'package:e_learning/core/network/api_service.dart';
 import 'package:e_learning/features/comments/data/models/course_comment_model.dart';
 
 abstract class CommentsDataSource {
@@ -97,4 +99,46 @@ class MockCommentsDataSource implements CommentsDataSource {
       createdAt: DateTime(2026, 3, 25, 17, 15),
     ),
   ];
+}
+
+class RemoteCommentsDataSource implements CommentsDataSource {
+  const RemoteCommentsDataSource({required ApiService apiService})
+    : _apiService = apiService;
+
+  final ApiService _apiService;
+
+  @override
+  Future<List<CourseCommentModel>> getComments({
+    required String courseId,
+    String? videoId,
+  }) async {
+    final response = await _apiService.get(
+      EndpointConstants.comments,
+      queryParameters: {'courseId': courseId, 'videoId': videoId}
+        ..removeWhere((_, v) => v == null),
+    );
+    final List<dynamic> data = response.data;
+    return data.map((json) => CourseCommentModel.fromJson(json)).toList();
+  }
+
+  @override
+  Future<CourseCommentModel> addComment({
+    required String courseId,
+    required String videoId,
+    required String authorName,
+    required String courseTitle,
+    required String message,
+  }) async {
+    final response = await _apiService.post(
+      EndpointConstants.comments,
+      data: {
+        'courseId': courseId,
+        'videoId': videoId,
+        'authorName': authorName,
+        'courseTitle': courseTitle,
+        'message': message,
+      },
+    );
+    return CourseCommentModel.fromJson(response.data);
+  }
 }

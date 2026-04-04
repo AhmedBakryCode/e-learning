@@ -17,6 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:video_player/video_player.dart';
+import 'package:flutter_windowmanager_plus/flutter_windowmanager_plus.dart';
 
 class VideoPlayerPage extends StatelessWidget {
   const VideoPlayerPage({
@@ -73,10 +74,28 @@ class _VideoPlayerViewState extends State<_VideoPlayerView> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _cubit = context.read<VideoSessionCubit>();
+    _enableSecureScreen();
+  }
+
+  Future<void> _enableSecureScreen() async {
+    if (!kIsWeb && Platform.isAndroid) {
+      await FlutterWindowManagerPlus.addFlags(
+        FlutterWindowManagerPlus.FLAG_SECURE,
+      );
+    }
+  }
+
+  Future<void> _disableSecureScreen() async {
+    if (!kIsWeb && Platform.isAndroid) {
+      await FlutterWindowManagerPlus.clearFlags(
+        FlutterWindowManagerPlus.FLAG_SECURE,
+      );
+    }
   }
 
   @override
   void dispose() {
+    _disableSecureScreen();
     _persistPosition(force: true);
     _disposeController();
     super.dispose();
@@ -101,9 +120,9 @@ class _VideoPlayerViewState extends State<_VideoPlayerView> {
 
         if (state.actionStatus != ViewStateStatus.initial &&
             state.actionMessage != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.actionMessage!)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.actionMessage!)));
           context.read<VideoSessionCubit>().clearActionState();
         }
       },
@@ -116,13 +135,15 @@ class _VideoPlayerViewState extends State<_VideoPlayerView> {
           );
         }
 
-        if (state.status == ViewStateStatus.failure || state.currentVideo == null) {
+        if (state.status == ViewStateStatus.failure ||
+            state.currentVideo == null) {
           return AdaptiveScaffold(
             title: 'Video player',
             subtitle: 'Lesson playback will appear here once available.',
             body: EmptyStateWidget(
               title: 'No video available',
-              message: state.errorMessage ??
+              message:
+                  state.errorMessage ??
                   'This lesson could not be loaded from existing experimental data.',
               icon: Icons.play_circle_outline_rounded,
             ),
@@ -160,7 +181,11 @@ class _VideoPlayerViewState extends State<_VideoPlayerView> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline_rounded, color: Colors.white60, size: 48),
+              const Icon(
+                Icons.error_outline_rounded,
+                color: Colors.white60,
+                size: 48,
+              ),
               const SizedBox(height: AppSpacing.md),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
@@ -168,9 +193,9 @@ class _VideoPlayerViewState extends State<_VideoPlayerView> {
                   _controllerError!,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
@@ -266,7 +291,57 @@ class _VideoPlayerViewState extends State<_VideoPlayerView> {
               allowScrubbing: true,
               padding: const EdgeInsets.all(AppSpacing.md),
             ),
+            _buildWatermark(context),
+            _buildSpeedCorner(context),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWatermark(BuildContext context) {
+    final user = context.read<AuthCubit>().state.user;
+    if (user == null) return const SizedBox.shrink();
+    return _WatermarkOverlay(text: '${user.name} | ${user.id}');
+  }
+
+  Widget _buildSpeedCorner(BuildContext context) {
+    return Positioned(
+      top: AppSpacing.md,
+      right: AppSpacing.md,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.black.withAlpha(120),
+          borderRadius: BorderRadius.circular(AppRadii.pill),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: PopupMenuButton<double>(
+            initialValue: _controller?.value.playbackSpeed ?? 1.0,
+            tooltip: 'Playback speed',
+            onSelected: (speed) {
+              _controller?.setPlaybackSpeed(speed);
+              setState(() {});
+            },
+            itemBuilder: (context) =>
+                [0.5, 0.75, 1.0, 1.25, 1.5, 2.0].map((speed) {
+                  return PopupMenuItem(value: speed, child: Text('${speed}x'));
+                }).toList(),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.xs,
+              ),
+              child: Text(
+                '${_controller?.value.playbackSpeed ?? 1.0}x',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -278,7 +353,9 @@ class _VideoPlayerViewState extends State<_VideoPlayerView> {
     required int resumePositionSeconds,
     bool force = false,
   }) async {
-    if (!force && _currentVideoId == videoId && (_controller != null || _controllerError != null)) {
+    if (!force &&
+        _currentVideoId == videoId &&
+        (_controller != null || _controllerError != null)) {
       return;
     }
 
@@ -293,7 +370,11 @@ class _VideoPlayerViewState extends State<_VideoPlayerView> {
     });
 
     try {
-      final isLocalFile = !kIsWeb && !videoUrl.startsWith('http') && !videoUrl.startsWith('assets/') && File(videoUrl).existsSync();
+      final isLocalFile =
+          !kIsWeb &&
+          !videoUrl.startsWith('http') &&
+          !videoUrl.startsWith('assets/') &&
+          File(videoUrl).existsSync();
       final isAsset = videoUrl.startsWith('assets/');
 
       final VideoPlayerController controller;
@@ -323,7 +404,8 @@ class _VideoPlayerViewState extends State<_VideoPlayerView> {
       if (!mounted) return;
       debugPrint('Video Player error: $e');
       setState(() {
-        _controllerError = 'Unable to play this lesson. Please check your internet connection and try again.';
+        _controllerError =
+            'Unable to play this lesson. Please check your internet connection and try again.';
       });
     }
   }
@@ -410,7 +492,11 @@ class _MobileLayout extends StatelessWidget {
                 children: [
                   playerSurface,
                   const SizedBox(height: AppSpacing.lg),
-                  _VideoInfoCard(state: state, courseId: courseId, formatSeconds: formatSeconds),
+                  _VideoInfoCard(
+                    state: state,
+                    courseId: courseId,
+                    formatSeconds: formatSeconds,
+                  ),
                   const SizedBox(height: AppSpacing.lg),
                   _buildTabs(context),
                 ],
@@ -427,7 +513,11 @@ class _MobileLayout extends StatelessWidget {
     return Column(
       children: [
         TabBar(
-          tabs: const [Tab(text: 'Lessons'), Tab(text: 'Comments'), Tab(text: 'Comments')],
+          tabs: const [
+            Tab(text: 'Lessons'),
+            Tab(text: 'Comments'),
+            Tab(text: 'Comments'),
+          ],
           labelColor: Theme.of(context).colorScheme.primary,
         ),
         SizedBox(
@@ -445,8 +535,11 @@ class _MobileLayout extends StatelessWidget {
   }
 
   Widget _buildNavigation(BuildContext context) {
-    final nextIndex = state.videos.indexWhere((v) => v.id == state.currentVideo!.id) + 1;
-    final nextVideo = nextIndex < state.videos.length ? state.videos[nextIndex] : null;
+    final nextIndex =
+        state.videos.indexWhere((v) => v.id == state.currentVideo!.id) + 1;
+    final nextVideo = nextIndex < state.videos.length
+        ? state.videos[nextIndex]
+        : null;
 
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.pagePadding),
@@ -464,7 +557,8 @@ class _MobileLayout extends StatelessWidget {
               onPressed: nextVideo == null
                   ? null
                   : () => context.pushReplacement(
-                      '/student/courses/$courseId/video/${nextVideo.id}'),
+                      '/student/courses/$courseId/video/${nextVideo.id}',
+                    ),
               child: Text(nextVideo == null ? 'Done' : 'Next lesson'),
             ),
           ),
@@ -505,7 +599,11 @@ class _DesktopLayout extends StatelessWidget {
                 children: [
                   playerSurface,
                   const SizedBox(height: AppSpacing.xl),
-                  _VideoInfoCard(state: state, courseId: courseId, formatSeconds: formatSeconds),
+                  _VideoInfoCard(
+                    state: state,
+                    courseId: courseId,
+                    formatSeconds: formatSeconds,
+                  ),
                   const SizedBox(height: AppSpacing.xl),
                   _NotesTab(state: state, formatSeconds: formatSeconds),
                 ],
@@ -517,7 +615,9 @@ class _DesktopLayout extends StatelessWidget {
             width: 350,
             padding: const EdgeInsets.all(AppSpacing.lg),
             decoration: BoxDecoration(
-              border: Border(right: BorderSide(color: Theme.of(context).dividerColor)),
+              border: Border(
+                right: BorderSide(color: Theme.of(context).dividerColor),
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -527,7 +627,9 @@ class _DesktopLayout extends StatelessWidget {
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: AppSpacing.md),
-                Expanded(child: _VideosList(state: state, courseId: courseId)),
+                Expanded(
+                  child: _VideosList(state: state, courseId: courseId),
+                ),
                 const SizedBox(height: AppSpacing.lg),
                 _CommentsTab(state: state, courseId: courseId),
               ],
@@ -540,7 +642,11 @@ class _DesktopLayout extends StatelessWidget {
 }
 
 class _VideoInfoCard extends StatelessWidget {
-  const _VideoInfoCard({required this.state, required this.courseId, required this.formatSeconds});
+  const _VideoInfoCard({
+    required this.state,
+    required this.courseId,
+    required this.formatSeconds,
+  });
   final VideoSessionState state;
   final String courseId;
   final String Function(int) formatSeconds;
@@ -572,7 +678,8 @@ class _VideoInfoCard extends StatelessWidget {
             children: [
               Expanded(
                 child: FilledButton.icon(
-                  onPressed: () => context.read<VideoSessionCubit>().markCompleted(),
+                  onPressed: () =>
+                      context.read<VideoSessionCubit>().markCompleted(),
                   icon: const Icon(Icons.check_rounded),
                   label: const Text('Mark as complete'),
                 ),
@@ -604,7 +711,8 @@ class _VideosList extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView.separated(
       itemCount: state.videos.length,
-      separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
+      separatorBuilder: (context, index) =>
+          const SizedBox(height: AppSpacing.sm),
       itemBuilder: (context, index) {
         final video = state.videos[index];
         return CourseVideoTile(
@@ -629,9 +737,11 @@ class _NotesTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppCard(
       title: 'Lesson notes',
-      subtitle: 'Current location: ${formatSeconds(state.resumePositionSeconds)}',
+      subtitle:
+          'Current location: ${formatSeconds(state.resumePositionSeconds)}',
       child: const Text(
-          'This lesson is connected to an experimental cloud data system. Your notes will be automatically saved when you write them in future updates.'),
+        'This lesson is connected to an experimental cloud data system. Your notes will be automatically saved when you write them in future updates.',
+      ),
     );
   }
 }
@@ -652,6 +762,66 @@ class _CommentsTab extends StatelessWidget {
         ),
         icon: const Icon(Icons.forum_rounded),
         label: const Text('Open comments'),
+      ),
+    );
+  }
+}
+
+class _WatermarkOverlay extends StatefulWidget {
+  const _WatermarkOverlay({required this.text});
+  final String text;
+
+  @override
+  State<_WatermarkOverlay> createState() => _WatermarkOverlayState();
+}
+
+class _WatermarkOverlayState extends State<_WatermarkOverlay> {
+  double top = 20;
+  double left = 20;
+  late Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startMoving();
+  }
+
+  void _startMoving() {
+    _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (!mounted) return;
+      setState(() {
+        final now = DateTime.now().millisecondsSinceEpoch;
+        top = (now % 100).toDouble() + 10;
+        left = (now % 150).toDouble() + 10;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedPositioned(
+      duration: const Duration(seconds: 5),
+      top: top,
+      left: left,
+      child: IgnorePointer(
+        child: Opacity(
+          opacity: 0.15,
+          child: Text(
+            widget.text,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+              decoration: TextDecoration.none,
+            ),
+          ),
+        ),
       ),
     );
   }

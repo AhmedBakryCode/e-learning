@@ -64,7 +64,9 @@ class _AdminStudentFormViewState extends State<_AdminStudentFormView> {
     _nameController = TextEditingController(text: student?.name ?? '');
     _emailController = TextEditingController(text: student?.email ?? '');
     _phoneController = TextEditingController(text: student?.phoneNumber ?? '');
-    _parentPhoneController = TextEditingController(text: student?.parentPhoneNumber ?? '');
+    _parentPhoneController = TextEditingController(
+      text: student?.parentPhoneNumber ?? '',
+    );
     _passwordController = TextEditingController(text: student?.password ?? '');
     _selectedImagePath = student?.profileImagePath;
   }
@@ -130,7 +132,10 @@ class _AdminStudentFormViewState extends State<_AdminStudentFormView> {
                       color: AppColors.primary.withAlpha(20),
                       borderRadius: BorderRadius.circular(AppRadii.lg),
                     ),
-                    child: const Icon(Icons.photo_camera_rounded, color: AppColors.primary),
+                    child: const Icon(
+                      Icons.photo_camera_rounded,
+                      color: AppColors.primary,
+                    ),
                   ),
                   title: const Text('Camera'),
                   subtitle: const Text('Take a new photo'),
@@ -148,7 +153,10 @@ class _AdminStudentFormViewState extends State<_AdminStudentFormView> {
                       color: AppColors.secondary.withAlpha(20),
                       borderRadius: BorderRadius.circular(AppRadii.lg),
                     ),
-                    child: const Icon(Icons.photo_library_rounded, color: AppColors.secondary),
+                    child: const Icon(
+                      Icons.photo_library_rounded,
+                      color: AppColors.secondary,
+                    ),
                   ),
                   title: const Text('Gallery'),
                   subtitle: const Text('Choose from photo gallery'),
@@ -167,7 +175,10 @@ class _AdminStudentFormViewState extends State<_AdminStudentFormView> {
                         color: Colors.red.withAlpha(20),
                         borderRadius: BorderRadius.circular(AppRadii.lg),
                       ),
-                      child: const Icon(Icons.delete_outline_rounded, color: Colors.red),
+                      child: const Icon(
+                        Icons.delete_outline_rounded,
+                        color: Colors.red,
+                      ),
                     ),
                     title: const Text('Remove image'),
                     subtitle: const Text('Delete the current image'),
@@ -199,14 +210,19 @@ class _AdminStudentFormViewState extends State<_AdminStudentFormView> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              state.actionMessage ?? (isSuccess ? 'The student has been saved successfully.' : 'This student could not be saved.'),
+              state.actionMessage ??
+                  (isSuccess
+                      ? 'The student has been saved successfully.'
+                      : 'This student could not be saved.'),
             ),
           ),
         );
 
         if (isSuccess && state.selectedStudent != null) {
           context.read<StudentsCubit>().clearActionState();
-          context.pushReplacement('/admin/students/${state.selectedStudent!.id}');
+          context.pushReplacement(
+            '/admin/students/${state.selectedStudent!.id}',
+          );
           return;
         }
 
@@ -291,25 +307,30 @@ class _AdminStudentFormViewState extends State<_AdminStudentFormView> {
               child: ClipOval(
                 child: _selectedImagePath != null
                     ? (kIsWeb
-                        ? Image.network(
-                            _selectedImagePath!,
-                            fit: BoxFit.cover,
-                            width: 110,
-                            height: 110,
-                            errorBuilder: (_, __, ___) => const Icon(Icons.person),
-                          )
-                        : Image.file(
-                            File(_selectedImagePath!),
-                            fit: BoxFit.cover,
-                            width: 110,
-                            height: 110,
-                          ))
+                          ? Image.network(
+                              _selectedImagePath!,
+                              fit: BoxFit.cover,
+                              width: 110,
+                              height: 110,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(Icons.person),
+                            )
+                          : Image.file(
+                              File(_selectedImagePath!),
+                              fit: BoxFit.cover,
+                              width: 110,
+                              height: 110,
+                            ))
                     : Container(
-                        color: Theme.of(context).colorScheme.primary.withAlpha(15),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primary.withAlpha(15),
                         child: Icon(
                           Icons.person_rounded,
                           size: 50,
-                          color: Theme.of(context).colorScheme.primary.withAlpha(100),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withAlpha(100),
                         ),
                       ),
               ),
@@ -324,7 +345,9 @@ class _AdminStudentFormViewState extends State<_AdminStudentFormView> {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Theme.of(context).colorScheme.primary.withAlpha(60),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withAlpha(60),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -352,7 +375,8 @@ class _AdminStudentFormViewState extends State<_AdminStudentFormView> {
             children: [
               const SectionHeader(
                 title: 'Student data',
-                subtitle: 'Enter the basic data and the rest will be completed from the progression system.',
+                subtitle:
+                    'Enter the basic data and the rest will be completed from the progression system.',
               ),
               const SizedBox(height: AppSpacing.lg),
               _buildProfileImagePicker(),
@@ -424,7 +448,11 @@ class _AdminStudentFormViewState extends State<_AdminStudentFormView> {
               child: FilledButton(
                 onPressed: isSaving ? null : () => _submit(context),
                 child: isSaving
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
                     : Text(_isEdit ? 'Save modifications' : 'Student creation'),
               ),
             ),
@@ -437,14 +465,17 @@ class _AdminStudentFormViewState extends State<_AdminStudentFormView> {
   Widget _buildInfoCard() {
     return AppCard(
       title: 'Addition instructions',
-      subtitle: 'Make sure to enter a valid email so your student can receive alerts and progress update messages.',
+      subtitle:
+          'Make sure to enter a valid email so your student can receive alerts and progress update messages.',
       child: Column(
         children: [
           Row(
             children: [
               Icon(Icons.info_outline_rounded, color: AppColors.primary),
               const SizedBox(width: AppSpacing.md),
-              const Expanded(child: Text('The email will be used to log in later.')),
+              const Expanded(
+                child: Text('The email will be used to log in later.'),
+              ),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
@@ -452,7 +483,11 @@ class _AdminStudentFormViewState extends State<_AdminStudentFormView> {
             children: [
               Icon(Icons.photo_camera_outlined, color: AppColors.secondary),
               const SizedBox(width: AppSpacing.md),
-              const Expanded(child: Text('You can upload a photo of the student from the camera or gallery.')),
+              const Expanded(
+                child: Text(
+                  'You can upload a photo of the student from the camera or gallery.',
+                ),
+              ),
             ],
           ),
         ],
@@ -477,8 +512,8 @@ class _AdminStudentFormViewState extends State<_AdminStudentFormView> {
     if (_isEdit) {
       context.read<StudentsCubit>().updateStudent(
         UpdateStudentParams(
-          id: widget.studentId!, 
-          name: name, 
+          id: widget.studentId!,
+          name: name,
           email: email,
           phoneNumber: phone,
           parentPhoneNumber: parentPhone,
@@ -489,7 +524,7 @@ class _AdminStudentFormViewState extends State<_AdminStudentFormView> {
     } else {
       context.read<StudentsCubit>().addStudent(
         AddStudentParams(
-          name: name, 
+          name: name,
           email: email,
           phoneNumber: phone,
           parentPhoneNumber: parentPhone,
@@ -502,18 +537,35 @@ class _AdminStudentFormViewState extends State<_AdminStudentFormView> {
 
   void _onNavChanged(BuildContext context, int index) {
     switch (index) {
-      case 0: context.go('/admin'); break;
-      case 1: context.go('/admin/courses'); break;
-      case 2: context.go('/admin/students'); break;
-      case 3: context.go('/admin/notifications/send'); break;
+      case 0:
+        context.go('/admin');
+        break;
+      case 1:
+        context.go('/admin/courses');
+        break;
+      case 2:
+        context.go('/admin/students');
+        break;
+      case 3:
+        context.go('/admin/notifications/send');
+        break;
     }
   }
 
   List<NavigationDestination> _getDestinations() {
     return const [
-      NavigationDestination(icon: Icon(Icons.dashboard_outlined), label: 'Dashboard'),
-      NavigationDestination(icon: Icon(Icons.menu_book_outlined), label: 'Courses'),
-      NavigationDestination(icon: Icon(Icons.groups_outlined), label: 'Students'),
+      NavigationDestination(
+        icon: Icon(Icons.dashboard_outlined),
+        label: 'Dashboard',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.menu_book_outlined),
+        label: 'Courses',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.groups_outlined),
+        label: 'Students',
+      ),
       NavigationDestination(icon: Icon(Icons.send_outlined), label: 'Send'),
     ];
   }

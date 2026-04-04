@@ -9,6 +9,8 @@ class LearningNotification extends Equatable {
     required this.isRead,
     this.audienceLabel = 'All students',
     this.zoomMeetingLink,
+    this.targetCourseId,
+    this.createdAt,
   });
 
   final String id;
@@ -18,6 +20,8 @@ class LearningNotification extends Equatable {
   final bool isRead;
   final String audienceLabel;
   final String? zoomMeetingLink;
+  final String? targetCourseId;
+  final String? createdAt;
 
   LearningNotification copyWith({
     String? id,
@@ -27,6 +31,8 @@ class LearningNotification extends Equatable {
     bool? isRead,
     String? audienceLabel,
     String? zoomMeetingLink,
+    String? targetCourseId,
+    String? createdAt,
   }) {
     return LearningNotification(
       id: id ?? this.id,
@@ -36,6 +42,8 @@ class LearningNotification extends Equatable {
       isRead: isRead ?? this.isRead,
       audienceLabel: audienceLabel ?? this.audienceLabel,
       zoomMeetingLink: zoomMeetingLink ?? this.zoomMeetingLink,
+      targetCourseId: targetCourseId ?? this.targetCourseId,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 
@@ -48,5 +56,7 @@ class LearningNotification extends Equatable {
     isRead,
     audienceLabel,
     zoomMeetingLink,
+    targetCourseId,
+    createdAt,
   ];
 }

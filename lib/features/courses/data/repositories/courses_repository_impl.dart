@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:e_learning/features/auth/domain/entities/app_user.dart';
 import 'package:e_learning/features/courses/data/datasources/courses_data_source.dart';
 import 'package:e_learning/features/courses/domain/entities/course.dart';
@@ -80,13 +82,15 @@ class CoursesRepositoryImpl implements CoursesRepository {
     required String courseId,
     required String title,
     required String description,
-    required String videoUrl,
+    required File videoFile,
+    required bool isPreview,
   }) {
     return _dataSource.addCourseVideo(
       courseId: courseId,
       title: title,
       description: description,
-      videoUrl: videoUrl,
+      videoFile: videoFile,
+      isPreview: isPreview,
     );
   }
 }

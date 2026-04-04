@@ -25,4 +25,11 @@ abstract class StudentsRepository {
   });
 
   Future<void> deleteStudent(String id);
+
+  Future<void> addStudentCourse({
+    required String studentId,
+    required String courseId,
+  });
+
+  Future<List<Student>> getTopStudents({int limit});
 }

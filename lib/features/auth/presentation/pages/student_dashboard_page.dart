@@ -16,6 +16,8 @@ import 'package:e_learning/features/auth/presentation/cubit/student_dashboard_st
 import 'package:e_learning/features/auth/domain/entities/app_user.dart';
 import 'package:e_learning/features/courses/presentation/widgets/course_card.dart';
 import 'package:e_learning/features/courses/presentation/widgets/course_featured_card.dart';
+import 'package:e_learning/features/notifications/presentation/cubit/notifications_cubit.dart';
+import 'package:e_learning/features/notifications/presentation/cubit/notifications_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -36,8 +38,15 @@ class StudentDashboardPage extends StatelessWidget {
       );
     }
 
-    return BlocProvider(
-      create: (_) => sl<StudentDashboardCubit>()..loadDashboard(student.id),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => sl<StudentDashboardCubit>()..loadDashboard(student.id),
+        ),
+        BlocProvider(
+          create: (_) => sl<NotificationsCubit>()..loadNotifications(),
+        ),
+      ],
       child: BlocBuilder<StudentDashboardCubit, StudentDashboardState>(
         builder: (context, state) {
           return AdaptiveScaffold(
@@ -46,6 +55,21 @@ class StudentDashboardPage extends StatelessWidget {
                 'Track your progress, complete the appropriate lesson, and keep going.',
             selectedIndex: 0,
             onNavigationChanged: (index) => _onNavChanged(context, index),
+            leading: BlocBuilder<NotificationsCubit, NotificationsState>(
+              builder: (context, notificationsState) {
+                final unreadCount = notificationsState.notifications
+                    .where((n) => !n.isRead)
+                    .length;
+                return Badge(
+                  isLabelVisible: unreadCount > 0,
+                  label: Text('$unreadCount'),
+                  child: IconButton.filledTonal(
+                    onPressed: () => context.push('/student/notifications'),
+                    icon: const Icon(Icons.notifications_outlined),
+                  ),
+                );
+              },
+            ),
             navigationDestinations: const [
               NavigationDestination(
                 icon: Icon(Icons.home_outlined),
@@ -61,6 +85,11 @@ class StudentDashboardPage extends StatelessWidget {
                 icon: Icon(Icons.analytics_outlined),
                 selectedIcon: Icon(Icons.analytics_rounded),
                 label: 'Progressive',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.settings_outlined),
+                selectedIcon: Icon(Icons.settings_rounded),
+                label: 'Settings',
               ),
             ],
             actions: [
@@ -107,6 +136,9 @@ class StudentDashboardPage extends StatelessWidget {
       case 2:
         context.go('/student/progress');
         break;
+      case 3:
+        context.go('/student/settings');
+        break;
     }
   }
 }
@@ -133,6 +165,67 @@ class _StudentDashboardContent extends StatelessWidget {
         AppSpacing.huge,
       ),
       children: [
+        // Notifications Section
+        BlocBuilder<NotificationsCubit, NotificationsState>(
+          builder: (context, notificationsState) {
+            if (notificationsState.status == ViewStateStatus.loading ||
+                notificationsState.notifications.isEmpty) {
+              return const SizedBox.shrink();
+            }
+            final recentNotifications = notificationsState.notifications
+                .take(3)
+                .toList();
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: const SectionHeader(
+                        title: 'Recent Notifications',
+                        subtitle: 'Latest updates from your instructors.',
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => context.push('/student/notifications'),
+                      child: const Text('View all'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.md),
+                ...recentNotifications.map(
+                  (notification) => Card(
+                    margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                    child: ListTile(
+                      leading: Icon(
+                        notification.isRead
+                            ? Icons.notifications_outlined
+                            : Icons.notifications_active_rounded,
+                        color: notification.isRead ? null : AppColors.secondary,
+                      ),
+                      title: Text(
+                        notification.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      subtitle: Text(
+                        notification.message,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      trailing: Text(
+                        notification.timeLabel,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      onTap: () => context.push('/student/notifications'),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sectionGap),
+              ],
+            );
+          },
+        ),
         if (continueCourse != null && continueProgress != null)
           _ContinueLearningCard(
             learnerName: studentName,
@@ -195,7 +288,8 @@ class _StudentDashboardContent extends StatelessWidget {
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: state.enrolledCourses.length,
-              separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.lg),
+              separatorBuilder: (context, index) =>
+                  const SizedBox(width: AppSpacing.lg),
               itemBuilder: (context, index) {
                 final course = state.enrolledCourses[index];
                 return SizedBox(

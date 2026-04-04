@@ -40,9 +40,9 @@ class AdminDashboardPage extends StatelessWidget {
           label: 'Students',
         ),
         NavigationDestination(
-          icon: Icon(Icons.send_outlined),
-          selectedIcon: Icon(Icons.send_rounded),
-          label: 'Send',
+          icon: Icon(Icons.settings_outlined),
+          selectedIcon: Icon(Icons.settings_rounded),
+          label: 'Settings',
         ),
       ],
       actions: [
@@ -138,11 +138,11 @@ class AdminDashboardPage extends StatelessWidget {
                 onTap: () => context.go('/admin/notifications/send'),
               ),
               _QuickActionTile(
-                icon: Icons.video_call_rounded,
-                title: 'Add video',
-                description: 'Add a new lesson to the current main Course.',
+                icon: Icons.settings_rounded,
+                title: 'Application settings',
+                description: 'Manage your profile, theme, and notifications.',
                 color: AppColors.primary,
-                onTap: () => context.push('/admin/courses/course-001/videos/add'),
+                onTap: () => context.go('/admin/settings'),
               ),
             ],
           ),
@@ -214,10 +214,11 @@ class AdminDashboardPage extends StatelessWidget {
         context.go('/admin/students');
         break;
       case 3:
-        context.go('/admin/notifications/send');
+        context.go('/admin/settings');
         break;
     }
   }
+
 }
 
 

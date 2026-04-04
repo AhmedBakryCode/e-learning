@@ -50,6 +50,7 @@ class CoursesCubit extends Cubit<CoursesState> {
     try {
       final courses = await _getCourses(GetCoursesParams(role: role));
       final featuredCourses = await _getFeaturedCourses(const NoParams());
+      if (isClosed) return;
       emit(
         state.copyWith(
           status: ViewStateStatus.success,
@@ -61,6 +62,7 @@ class CoursesCubit extends Cubit<CoursesState> {
         ),
       );
     } catch (_) {
+      if (isClosed) return;
       emit(
         state.copyWith(
           status: ViewStateStatus.failure,
@@ -86,6 +88,7 @@ class CoursesCubit extends Cubit<CoursesState> {
       }
 
       final videos = await _getCourseVideos(GetCourseVideosParams(courseId));
+      if (isClosed) return;
       emit(
         state.copyWith(
           status: ViewStateStatus.success,
@@ -94,6 +97,7 @@ class CoursesCubit extends Cubit<CoursesState> {
         ),
       );
     } catch (_) {
+      if (isClosed) return;
       emit(
         state.copyWith(
           status: ViewStateStatus.failure,
@@ -115,6 +119,7 @@ class CoursesCubit extends Cubit<CoursesState> {
 
     try {
       final course = await _createCourse(params);
+      if (isClosed) return;
       emit(
         state.copyWith(
           actionStatus: ViewStateStatus.success,
@@ -144,6 +149,7 @@ class CoursesCubit extends Cubit<CoursesState> {
 
     try {
       final course = await _updateCourse(params);
+      if (isClosed) return;
       emit(
         state.copyWith(
           actionStatus: ViewStateStatus.success,
@@ -173,6 +179,7 @@ class CoursesCubit extends Cubit<CoursesState> {
 
     try {
       await _deleteCourse(DeleteCourseParams(courseId));
+      if (isClosed) return;
       emit(
         state.copyWith(
           actionStatus: ViewStateStatus.success,
@@ -210,7 +217,7 @@ class CoursesCubit extends Cubit<CoursesState> {
       final refreshedCourse = await _getCourseById(
         GetCourseByIdParams(params.courseId),
       );
-
+      if (isClosed) return;
       emit(
         state.copyWith(
           actionStatus: ViewStateStatus.success,

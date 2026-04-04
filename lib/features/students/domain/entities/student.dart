@@ -11,6 +11,7 @@ class Student extends Equatable {
     this.parentPhoneNumber,
     this.password,
     this.profileImagePath,
+    this.profileImageUrl,
   });
 
   final String id;
@@ -22,17 +23,19 @@ class Student extends Equatable {
   final String? parentPhoneNumber;
   final String? password;
   final String? profileImagePath;
+  final String? profileImageUrl;
 
   @override
   List<Object?> get props => [
-    id, 
-    name, 
-    email, 
-    activeCourses, 
-    completionRate, 
-    phoneNumber, 
-    parentPhoneNumber, 
+    id,
+    name,
+    email,
+    activeCourses,
+    completionRate,
+    phoneNumber,
+    parentPhoneNumber,
     password,
     profileImagePath,
+    profileImageUrl,
   ];
 }

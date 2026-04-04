@@ -14,13 +14,13 @@ import 'package:e_learning/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:e_learning/features/courses/presentation/cubit/courses_cubit.dart';
 import 'package:e_learning/features/courses/presentation/cubit/courses_state.dart';
 import 'package:e_learning/features/courses/presentation/widgets/course_card.dart';
-import 'package:e_learning/features/courses/presentation/widgets/course_featured_card.dart';
 import 'package:e_learning/features/progress/presentation/cubit/progress_cubit.dart';
 import 'package:e_learning/features/progress/presentation/cubit/progress_state.dart';
 import 'package:e_learning/core/widgets/responsive_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class CoursesPage extends StatelessWidget {
   const CoursesPage({super.key, required this.role});
@@ -45,22 +45,31 @@ class CoursesPage extends StatelessWidget {
           final destinations = _getNavigationDestinations(role);
 
           return AdaptiveScaffold(
-            title: role == UserRole.admin ? 'Course management' : 'Course library',
+            title: role == UserRole.admin
+                ? 'Course management'
+                : 'Course library',
             subtitle: role == UserRole.admin
                 ? 'Manage content quality, drafts, videos, and publishing status.'
                 : 'Browse educational paths with clear progress indicators.',
-            selectedIndex: 1,
+            selectedIndex: 2,
             onNavigationChanged: (index) => _onNavChanged(context, role, index),
             navigationDestinations: destinations,
+            floatingActionButton: role == UserRole.admin
+                ? FloatingActionButton.extended(
+                    onPressed: () => context.push('/admin/courses/add'),
+                    icon: const Icon(Icons.add_rounded),
+                    label: const Text('Add a Course'),
+                  )
+                : null,
             body: state.status == ViewStateStatus.loading
                 ? _CoursesLoading(role: role)
                 : state.status == ViewStateStatus.failure
-                    ? _CoursesError(
-                        role: role,
-                        onRetry: () =>
-                            context.read<CoursesCubit>().loadCourses(role),
-                      )
-                    : _CoursesLoaded(role: role, state: state),
+                ? _CoursesError(
+                    role: role,
+                    onRetry: () =>
+                        context.read<CoursesCubit>().loadCourses(role),
+                  )
+                : _CoursesLoaded(role: role, state: state),
           );
         },
       ),
@@ -95,6 +104,9 @@ class CoursesPage extends StatelessWidget {
         break;
       case 2:
         context.go('/student/progress');
+        break;
+      case 3:
+        context.go('/student/settings');
         break;
     }
   }
@@ -140,6 +152,11 @@ class CoursesPage extends StatelessWidget {
         icon: Icon(Icons.analytics_outlined),
         selectedIcon: Icon(Icons.analytics_rounded),
         label: 'Progressive',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.settings_outlined),
+        selectedIcon: Icon(Icons.settings_rounded),
+        label: 'Settings',
       ),
     ];
   }
@@ -200,82 +217,97 @@ class _CoursesLoaded extends StatelessWidget {
           hintText: 'Search for a Course, teacher, or category...',
         ),
         const SizedBox(height: AppSpacing.sectionGap),
-        const SectionHeader(
-          title: 'Distinctive Courses',
-          subtitle: 'The best rated and most popular content among students.',
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        SizedBox(
-          height: 400,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: state.featuredCourses.length,
-            separatorBuilder: (context, index) =>
-                const SizedBox(width: AppSpacing.lg),
-            itemBuilder: (context, index) {
-              final course = state.featuredCourses[index];
-              return SizedBox(
-                width: 310,
-                child: CourseFeaturedCard(
-                  course: course,
-                  onTap: () => _openCourse(context, role, course.id),
-                ),
-              );
-            },
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xxxl),
+        if (role == UserRole.admin) ...[
+          // const SectionHeader(
+          //   title: 'Distinctive Courses',
+          //   subtitle: 'The best rated and most popular content among students.',
+          // ),
+          // const SizedBox(height: AppSpacing.lg),
+          // SizedBox(
+          //   height: 400,
+          //   child: ListView.separated(
+          //     scrollDirection: Axis.horizontal,
+          //     itemCount: state.featuredCourses.length,
+          //     separatorBuilder: (context, index) =>
+          //         const SizedBox(width: AppSpacing.lg),
+          //     itemBuilder: (context, index) {
+          //       final course = state.featuredCourses[index];
+          //       return SizedBox(
+          //         width: 310,
+          //         child: CourseFeaturedCard(
+          //           course: course,
+          //           onTap: () => _openCourse(context, role, course.id),
+          //         ),
+          //       );
+          //     },
+          //   ),
+          // ),
+          // const SizedBox(height: AppSpacing.xxxl),
+        ],
         if (role == UserRole.admin) ...[
           const SectionHeader(
             title: 'Control menu',
-            subtitle: 'Click the arrow for quick access to edit or review options.',
+            subtitle:
+                'Click the arrow for quick access to edit or review options.',
           ),
           const SizedBox(height: AppSpacing.lg),
           _AdminCoursesList(state: state),
         ] else
           BlocBuilder<ProgressCubit, ProgressState>(
             builder: (context, progressState) {
-              final enrolledCourseIds = progressState.progressItems.map((p) => p.courseId).toSet();
-
               final myCourses = state.filteredCourses
-                  .where((course) => enrolledCourseIds.contains(course.id))
+                  .where((course) => course.isFeatured)
                   .toList();
 
               final otherCourses = state.filteredCourses
-                  .where((course) => !enrolledCourseIds.contains(course.id))
+                  .where((course) => !course.isFeatured)
                   .toList();
 
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (myCourses.isNotEmpty) ...[
-                    const SectionHeader(
-                      title: 'My current Courses',
-                      subtitle: 'Track your progress in these recorded Courses.',
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
+                  const SectionHeader(
+                    title: 'My Enrolled Courses',
+                    subtitle: 'Access all videos and track your progress.',
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  if (myCourses.isEmpty)
+                    const EmptyStateWidget(
+                      title: 'You are not subscribed to any course',
+                      message:
+                          'Explore available courses below and contact us to enroll.',
+                      icon: Icons.school_outlined,
+                    )
+                  else
                     ResponsiveGrid(
                       mobileCrossAxisCount: 1,
                       tabletCrossAxisCount: 2,
                       desktopCrossAxisCount: 3,
-                      children: myCourses.map((course) => CourseCard(
-                        course: course,
-                        role: role,
-                        onTap: () => _openCourse(context, role, course.id),
-                      )).toList(),
+                      children: myCourses
+                          .map(
+                            (course) => CourseCard(
+                              course: course,
+                              role: role,
+                              actionLabel: 'Continue Learning',
+                              onTap: () =>
+                                  _openCourse(context, role, course.id),
+                            ),
+                          )
+                          .toList(),
                     ),
-                    const SizedBox(height: AppSpacing.xxxl),
-                  ],
+                  const SizedBox(height: AppSpacing.xxxl),
 
                   const SectionHeader(
-                    title: 'Other Courses available',
-                    subtitle: 'Explore and enroll in new Courses to develop your skills.',
+                    title: 'Available Courses',
+                    subtitle:
+                        'Contact us via WhatsApp or Telegram to enroll: 01065406332',
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   if (otherCourses.isEmpty)
                     const EmptyStateWidget(
-                      title: 'There are no other Courses currently available',
-                      message: 'It seems that you are subscribed to all currently available Courses! Waiting for new content soon.',
+                      title: 'No available courses at the moment',
+                      message:
+                          'All courses are currently available for enrollment. Check back soon!',
                       icon: Icons.check_circle_outline_rounded,
                     )
                   else
@@ -283,12 +315,15 @@ class _CoursesLoaded extends StatelessWidget {
                       mobileCrossAxisCount: 1,
                       tabletCrossAxisCount: 2,
                       desktopCrossAxisCount: 3,
-                      children: otherCourses.map((course) => CourseCard(
-                        course: course,
-                        role: role,
-                        actionLabel: 'Explore the Course',
-                        onTap: () => _openCourse(context, role, course.id),
-                      )).toList(),
+                      children: otherCourses
+                          .map(
+                            (course) => _NonEnrolledCourseCard(
+                              course: course,
+                              onContact: () =>
+                                  _showContactOptions(context, course.title),
+                            ),
+                          )
+                          .toList(),
                     ),
                 ],
               );
@@ -299,7 +334,11 @@ class _CoursesLoaded extends StatelessWidget {
   }
 
   void _openCourse(BuildContext context, UserRole role, String courseId) {
-    context.push(role == UserRole.admin ? '/admin/courses/$courseId' : '/student/courses/$courseId');
+    context.push(
+      role == UserRole.admin
+          ? '/admin/courses/$courseId'
+          : '/student/courses/$courseId',
+    );
   }
 }
 
@@ -312,7 +351,8 @@ class _AdminCoursesList extends StatelessWidget {
     if (state.filteredCourses.isEmpty) {
       return const EmptyStateWidget(
         title: 'There are no matching Courses',
-        message: 'Try a different filter or add a new Course to expand this list.',
+        message:
+            'Try a different filter or add a new Course to expand this list.',
         icon: Icons.filter_alt_off_rounded,
       );
     }
@@ -347,7 +387,9 @@ class _AdminCoursesList extends StatelessWidget {
                       course.title,
                     );
                     if (confirmed && context.mounted) {
-                      await context.read<CoursesCubit>().deleteCourse(course.id);
+                      await context.read<CoursesCubit>().deleteCourse(
+                        course.id,
+                      );
                     }
                   }
                 },
@@ -355,7 +397,10 @@ class _AdminCoursesList extends StatelessWidget {
                   PopupMenuItem(value: 'edit', child: Text('Edit the chorus')),
                   PopupMenuItem(value: 'video', child: Text('Add video')),
                   PopupMenuDivider(),
-                  PopupMenuItem(value: 'delete', child: Text('Delete the Course')),
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Text('Delete the Course'),
+                  ),
                 ],
                 child: const Icon(Icons.more_horiz_rounded),
               ),
@@ -367,7 +412,11 @@ class _AdminCoursesList extends StatelessWidget {
   }
 
   void _openCourse(BuildContext context, UserRole role, String courseId) {
-    context.push(role == UserRole.admin ? '/admin/courses/$courseId' : '/student/courses/$courseId');
+    context.push(
+      role == UserRole.admin
+          ? '/admin/courses/$courseId'
+          : '/student/courses/$courseId',
+    );
   }
 
   Future<bool> _confirmDeleteCourse(BuildContext context, String title) async {
@@ -451,5 +500,284 @@ class _CoursesError extends StatelessWidget {
       icon: Icons.error_outline_rounded,
       action: FilledButton(onPressed: onRetry, child: const Text('Retry')),
     );
+  }
+}
+
+class _NonEnrolledCourseCard extends StatelessWidget {
+  const _NonEnrolledCourseCard({required this.course, required this.onContact});
+
+  final dynamic course;
+  final VoidCallback onContact;
+
+  IconData _categoryIcon(String category) {
+    switch (category) {
+      case 'Development':
+        return Icons.code_rounded;
+      case 'Design':
+        return Icons.palette_outlined;
+      case 'Analytics':
+        return Icons.analytics_outlined;
+      case 'AI':
+        return Icons.auto_awesome_rounded;
+      case 'Teaching':
+        return Icons.school_outlined;
+      default:
+        return Icons.menu_book_rounded;
+    }
+  }
+
+  Color _categoryColor(String category) {
+    switch (category) {
+      case 'Development':
+        return const Color(0xFF3B82F6);
+      case 'Design':
+        return const Color(0xFFEC4899);
+      case 'Analytics':
+        return const Color(0xFFF59E0B);
+      case 'AI':
+        return const Color(0xFF8B5CF6);
+      case 'Teaching':
+        return const Color(0xFF10B981);
+      default:
+        return const Color(0xFF1C1E22);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final accentColor = _categoryColor(course.category);
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: accentColor.withValues(alpha: 0.1),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: accentColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(AppRadii.md),
+                  ),
+                  child: Icon(
+                    _categoryIcon(course.category),
+                    color: accentColor,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        course.title,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        course.category,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.muted,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  course.description ?? 'No description available',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: AppColors.muted),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Wrap(
+                  spacing: AppSpacing.xs,
+                  runSpacing: AppSpacing.xs,
+                  children: [
+                    _InfoChip(
+                      icon: Icons.person_outline_rounded,
+                      label: course.instructorName,
+                    ),
+                    _InfoChip(
+                      icon: Icons.play_lesson_rounded,
+                      label: '${course.totalLessons}',
+                    ),
+                    _InfoChip(
+                      icon: Icons.star_rounded,
+                      label: course.rating.toStringAsFixed(1),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                FilledButton.icon(
+                  onPressed: onContact,
+                  icon: const Icon(Icons.contact_support_outlined, size: 18),
+                  label: const Text('Contact to Enroll'),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 40),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoChip extends StatelessWidget {
+  const _InfoChip({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppRadii.pill),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: Theme.of(context).colorScheme.primary),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.labelMedium,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+void _showContactOptions(BuildContext context, String courseTitle) {
+  showModalBottomSheet(
+    context: context,
+    builder: (context) => SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Enroll in $courseTitle',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Contact us via WhatsApp or Telegram to enroll in this course.',
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: AppColors.muted),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(AppSpacing.sm),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF25D366).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppRadii.md),
+                ),
+                child: const Icon(Icons.chat, color: Color(0xFF25D366)),
+              ),
+              title: const Text('WhatsApp'),
+              subtitle: const Text('01065406332'),
+              trailing: const Icon(Icons.open_in_new),
+              onTap: () => _launchWhatsApp(context),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(AppSpacing.sm),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0088CC).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppRadii.md),
+                ),
+                child: const Icon(Icons.send, color: Color(0xFF0088CC)),
+              ),
+              title: const Text('Telegram'),
+              subtitle: const Text('01065406332'),
+              trailing: const Icon(Icons.open_in_new),
+              onTap: () => _launchTelegram(context),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+Future<void> _launchWhatsApp(BuildContext context) async {
+  final Uri uri = Uri.parse('https://wa.me/201065406332');
+  if (await canLaunchUrl(uri)) {
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  } else {
+    if (context.mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Could not open WhatsApp')));
+    }
+  }
+}
+
+Future<void> _launchTelegram(BuildContext context) async {
+  final Uri uri = Uri.parse('https://t.me/+201065406332');
+  if (await canLaunchUrl(uri)) {
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  } else {
+    if (context.mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Could not open Telegram')));
+    }
   }
 }

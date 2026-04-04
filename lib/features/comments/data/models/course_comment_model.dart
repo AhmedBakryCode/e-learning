@@ -12,6 +12,19 @@ class CourseCommentModel extends CourseComment {
     required super.createdAt,
   });
 
+  factory CourseCommentModel.fromJson(Map<String, dynamic> json) {
+    return CourseCommentModel(
+      id: json['id'] as String,
+      courseId: json['courseId'] as String,
+      videoId: json['videoId'] as String,
+      authorName: json['authorName'] as String,
+      courseTitle: json['courseTitle'] as String,
+      message: json['message'] as String,
+      timeLabel: json['timeLabel'] as String,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+    );
+  }
+
   @override
   CourseCommentModel copyWith({
     String? id,
