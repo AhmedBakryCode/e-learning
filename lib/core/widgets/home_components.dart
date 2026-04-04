@@ -420,61 +420,47 @@ class _TopStudentSlide extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Student avatar with progress ring
-            Stack(
-              alignment: Alignment.center,
-              children: [
-                SizedBox(
-                  width: 100,
-                  height: 100,
-                  child: CircularProgressIndicator(
-                    value: student.completionRate,
-                    strokeWidth: 4,
-                    backgroundColor: accent.withAlpha(25),
-                    valueColor: AlwaysStoppedAnimation(accent),
+            // Avatar with glow (matching Founder)
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: accent.withAlpha(isDark ? 40 : 25),
+                    blurRadius: 20,
+                    spreadRadius: 2,
                   ),
-                ),
-                student.profileImagePath != null
-                    ? ClipOval(
-                        child: kIsWeb
-                            ? Image.network(
-                                student.profileImagePath!,
-                                width: 82,
-                                height: 82,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    const Icon(Icons.person, size: 40),
-                              )
-                            : Image.file(
-                                File(student.profileImagePath!),
-                                width: 82,
-                                height: 82,
-                                fit: BoxFit.cover,
-                              ),
-                      )
-                    : CircleAvatar(
-                        radius: 41,
-                        backgroundColor: accent.withAlpha(isDark ? 40 : 20),
-                        child: Text(
-                          student.name.isNotEmpty ? student.name[0] : '?',
-                          style: TextStyle(
-                            color: accent,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 28,
-                          ),
+                ],
+              ),
+              child: CircleAvatar(
+                radius: 56,
+                backgroundImage: student.profileImagePath != null
+                    ? (kIsWeb
+                          ? NetworkImage(student.profileImagePath!)
+                          : FileImage(File(student.profileImagePath!)))
+                    : null,
+                backgroundColor: accent.withAlpha(isDark ? 40 : 20),
+                child: student.profileImagePath == null
+                    ? Text(
+                        student.name.isNotEmpty ? student.name[0] : '?',
+                        style: TextStyle(
+                          color: accent,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 28,
                         ),
-                      ),
-              ],
+                      )
+                    : null,
+              ),
             ),
-            const SizedBox(height: AppSpacing.md),
-            // Rank badge
+            const SizedBox(height: AppSpacing.xl),
+            // Rank badge (like role badge)
             Container(
               padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.sm,
+                horizontal: AppSpacing.md,
                 vertical: AppSpacing.xxs,
               ),
               decoration: BoxDecoration(
-                color: accent.withAlpha(isDark ? 50 : 25),
+                color: accent.withAlpha(isDark ? 50 : 20),
                 borderRadius: BorderRadius.circular(AppRadii.pill),
               ),
               child: Row(
@@ -483,36 +469,17 @@ class _TopStudentSlide extends StatelessWidget {
                   Icon(_rankIcon(), size: 14, color: accent),
                   const SizedBox(width: 4),
                   Text(
-                    'Center #$rank',
-                    style: TextStyle(
+                    'Rank #$rank',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: accent,
                       fontWeight: FontWeight.bold,
-                      fontSize: 12,
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: AppSpacing.xl),
-            // Info
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.sm,
-                vertical: AppSpacing.xxs,
-              ),
-              decoration: BoxDecoration(
-                color: accent.withAlpha(isDark ? 40 : 15),
-                borderRadius: BorderRadius.circular(AppRadii.pill),
-              ),
-              child: Text(
-                'Top Student',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: accent,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: AppSpacing.md),
+            // Name (like founder name)
             Text(
               student.name,
               textAlign: TextAlign.center,
@@ -520,80 +487,20 @@ class _TopStudentSlide extends StatelessWidget {
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
             ),
-            const SizedBox(height: AppSpacing.xs),
+            const SizedBox(height: AppSpacing.sm),
+            // Stats (like bio)
             Text(
-              student.email,
+              '$completionPct% completion · ${student.activeCourses} courses',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withAlpha(140),
+                color: Theme.of(context).colorScheme.onSurface.withAlpha(180),
+                height: 1.5,
               ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            // Stats row
-            Wrap(
-              spacing: AppSpacing.md,
-              runSpacing: AppSpacing.sm,
-              alignment: WrapAlignment.center,
-              children: [
-                _StatChip(
-                  icon: Icons.trending_up_rounded,
-                  label: '$completionPct% completion',
-                  color: accent,
-                  isDark: isDark,
-                ),
-                _StatChip(
-                  icon: Icons.menu_book_rounded,
-                  label: '${student.activeCourses} Course',
-                  color: primary,
-                  isDark: isDark,
-                ),
-              ],
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _StatChip extends StatelessWidget {
-  const _StatChip({
-    required this.icon,
-    required this.label,
-    required this.color,
-    required this.isDark,
-  });
-
-  final IconData icon;
-  final String label;
-  final Color color;
-  final bool isDark;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.xxs,
-      ),
-      decoration: BoxDecoration(
-        color: color.withAlpha(isDark ? 30 : 12),
-        borderRadius: BorderRadius.circular(AppRadii.pill),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.w600,
-              fontSize: 11,
-            ),
-          ),
-        ],
       ),
     );
   }

@@ -15,15 +15,20 @@ import 'package:e_learning/features/courses/presentation/pages/admin_course_form
 import 'package:e_learning/features/courses/presentation/pages/courses_page.dart';
 import 'package:e_learning/features/courses/presentation/pages/student_course_details_page.dart';
 import 'package:e_learning/features/courses/presentation/pages/video_player_page.dart';
+import 'package:e_learning/core/di/service_locator.dart';
+import 'package:e_learning/features/notifications/presentation/cubit/notifications_cubit.dart';
 import 'package:e_learning/features/notifications/presentation/pages/notifications_page.dart';
-import 'package:e_learning/features/payment/presentation/pages/payment_page.dart';
 import 'package:e_learning/features/notifications/presentation/pages/notifications_sender_page.dart';
+import 'package:e_learning/features/notifications/presentation/pages/student_notification_details_page.dart';
+import 'package:e_learning/features/notifications/domain/entities/learning_notification.dart';
+import 'package:e_learning/features/payment/presentation/pages/payment_page.dart';
 import 'package:e_learning/features/profile/presentation/pages/profile_page.dart';
 import 'package:e_learning/features/progress/presentation/pages/progress_page.dart';
 import 'package:e_learning/features/students/presentation/pages/admin_student_form_page.dart';
 import 'package:e_learning/features/students/presentation/pages/student_details_page.dart';
 import 'package:e_learning/features/students/presentation/pages/students_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 class AppRouter {
@@ -178,6 +183,19 @@ class AppRouter {
         path: '$studentPath/notifications',
         pageBuilder: (context, state) =>
             _page(state, const NotificationsPage(role: UserRole.student)),
+      ),
+      GoRoute(
+        path: '$studentPath/notifications/:notificationId',
+        pageBuilder: (context, state) {
+          final notification = state.extra as LearningNotification;
+          return _page(
+            state,
+            BlocProvider(
+              create: (_) => sl<NotificationsCubit>(),
+              child: StudentNotificationDetailsPage(notification: notification),
+            ),
+          );
+        },
       ),
       GoRoute(
         path: '$studentPath/settings',

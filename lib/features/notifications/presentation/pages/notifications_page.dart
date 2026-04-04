@@ -9,10 +9,12 @@ import 'package:e_learning/core/widgets/skeleton_box.dart';
 import 'package:e_learning/core/widgets/status_chip.dart';
 import 'package:e_learning/core/widgets/responsive_grid.dart';
 import 'package:e_learning/features/auth/domain/entities/app_user.dart';
+import 'package:e_learning/features/notifications/domain/entities/learning_notification.dart';
 import 'package:e_learning/features/notifications/presentation/cubit/notifications_cubit.dart';
 import 'package:e_learning/features/notifications/presentation/cubit/notifications_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class NotificationsPage extends StatelessWidget {
   const NotificationsPage({super.key, required this.role});
@@ -86,54 +88,69 @@ class NotificationsPage extends StatelessWidget {
                         tabletCrossAxisCount: 2,
                         desktopCrossAxisCount: 2,
                         children: state.notifications.map((notification) {
-                          return AppCard(
-                            title: notification.title,
-                            subtitle: notification.timeLabel,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  notification.message,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                                if (notification.zoomMeetingLink != null &&
-                                    MediaQuery.of(context).size.width >=
-                                        400) ...[
-                                  const SizedBox(height: AppSpacing.sm),
+                          return InkWell(
+                            onTap: role == UserRole.student
+                                ? () => _openNotificationDetails(
+                                    context,
+                                    notification,
+                                  )
+                                : null,
+                            borderRadius: BorderRadius.circular(AppRadii.xl),
+                            child: AppCard(
+                              title: notification.title,
+                              subtitle: notification.timeLabel,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
                                   Text(
-                                    notification.zoomMeetingLink!,
-                                    style: Theme.of(context).textTheme.bodySmall
-                                        ?.copyWith(color: AppColors.secondary),
-                                    maxLines: 1,
+                                    notification.message,
+                                    maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
                                   ),
-                                ],
-                                const SizedBox(height: AppSpacing.md),
-                                Wrap(
-                                  spacing: AppSpacing.xs,
-                                  runSpacing: AppSpacing.xs,
-                                  children: [
-                                    StatusChip(
-                                      label: notification.isRead
-                                          ? 'Readable'
-                                          : 'Illegible',
-                                      color: notification.isRead
-                                          ? AppColors.success
-                                          : AppColors.secondary,
-                                      icon: notification.isRead
-                                          ? Icons.done_all_rounded
-                                          : Icons.mark_chat_unread_rounded,
-                                    ),
-                                    StatusChip(
-                                      label: notification.audienceLabel,
-                                      color: AppColors.primary,
-                                      icon: Icons.groups_rounded,
+                                  if (notification.zoomMeetingLink != null &&
+                                      MediaQuery.of(context).size.width >=
+                                          400) ...[
+                                    const SizedBox(height: AppSpacing.sm),
+                                    Text(
+                                      notification.zoomMeetingLink!,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            color: AppColors.secondary,
+                                          ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ],
-                                ),
-                              ],
+                                  const SizedBox(height: AppSpacing.md),
+                                  Wrap(
+                                    spacing: AppSpacing.xs,
+                                    runSpacing: AppSpacing.xs,
+                                    children: [
+                                      StatusChip(
+                                        label: notification.isRead
+                                            ? 'Readable'
+                                            : 'Illegible',
+                                        color: notification.isRead
+                                            ? AppColors.success
+                                            : AppColors.secondary,
+                                        icon: notification.isRead
+                                            ? Icons.done_all_rounded
+                                            : Icons.mark_chat_unread_rounded,
+                                      ),
+                                      StatusChip(
+                                        label: notification.audienceLabel,
+                                        color: AppColors.primary,
+                                        icon: Icons.groups_rounded,
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                           );
                         }).toList(),
@@ -145,6 +162,16 @@ class NotificationsPage extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+
+  void _openNotificationDetails(
+    BuildContext context,
+    LearningNotification notification,
+  ) {
+    context.push(
+      '/student/notifications/${notification.id}',
+      extra: notification,
     );
   }
 }
