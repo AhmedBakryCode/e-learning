@@ -11,6 +11,7 @@ import 'package:e_learning/features/auth/domain/usecases/sign_in_as_role_usecase
 import 'package:e_learning/features/auth/domain/usecases/sign_out_usecase.dart';
 import 'package:e_learning/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:e_learning/features/auth/presentation/cubit/student_dashboard_cubit.dart';
+import 'package:e_learning/features/auth/presentation/cubit/showcase_cubit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:e_learning/features/courses/data/datasources/courses_data_source.dart';
 import 'package:e_learning/features/courses/data/repositories/courses_repository_impl.dart';
@@ -65,6 +66,13 @@ import 'package:e_learning/features/profile/domain/usecases/get_profile_usecase.
 import 'package:e_learning/features/profile/domain/usecases/update_profile_usecase.dart';
 import 'package:e_learning/features/profile/presentation/cubit/profile_cubit.dart';
 import 'package:e_learning/features/profile/data/repositories/mock_profile_repository.dart';
+import 'package:e_learning/features/head/data/repositories/head_repository_impl.dart';
+import 'package:e_learning/features/head/domain/repositories/head_repository.dart';
+import 'package:e_learning/features/head/domain/usecases/get_head_usecase.dart';
+import 'package:e_learning/features/head/domain/usecases/create_head_usecase.dart';
+import 'package:e_learning/features/head/domain/usecases/update_head_usecase.dart';
+import 'package:e_learning/features/head/domain/usecases/delete_head_usecase.dart';
+import 'package:e_learning/features/head/presentation/cubit/head_cubit.dart';
 import 'package:get_it/get_it.dart';
 
 final GetIt sl = GetIt.instance;
@@ -224,6 +232,12 @@ Future<void> configureDependencies() async {
       ),
     )
     ..registerLazySingleton<CommentsDataSource>(MockCommentsDataSource.new)
+    ..registerFactory(
+      () => ShowcaseCubit(
+        getHeadUseCase: sl<GetHeadUseCase>(),
+        getTopStudentsUseCase: sl<GetTopStudentsUseCase>(),
+      ),
+    )
     ..registerLazySingleton<CommentsRepository>(
       () => CommentsRepositoryImpl(dataSource: sl<CommentsDataSource>()),
     )
@@ -270,6 +284,21 @@ Future<void> configureDependencies() async {
       () => ProfileCubit(
         getProfile: sl<GetProfileUseCase>(),
         updateProfile: sl<UpdateProfileUseCase>(),
+      ),
+    )
+    ..registerLazySingleton<HeadRepository>(
+      () => HeadRepositoryImpl(sl<ApiService>()),
+    )
+    ..registerLazySingleton(() => GetHeadUseCase(sl<HeadRepository>()))
+    ..registerLazySingleton(() => CreateHeadUseCase(sl<HeadRepository>()))
+    ..registerLazySingleton(() => UpdateHeadUseCase(sl<HeadRepository>()))
+    ..registerLazySingleton(() => DeleteHeadUseCase(sl<HeadRepository>()))
+    ..registerFactory(
+      () => HeadCubit(
+        getHeadUseCase: sl<GetHeadUseCase>(),
+        createHeadUseCase: sl<CreateHeadUseCase>(),
+        updateHeadUseCase: sl<UpdateHeadUseCase>(),
+        deleteHeadUseCase: sl<DeleteHeadUseCase>(),
       ),
     );
 }

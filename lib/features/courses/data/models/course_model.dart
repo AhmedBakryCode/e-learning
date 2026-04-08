@@ -15,6 +15,7 @@ class CourseModel extends Course {
     required super.completionPercent,
     required super.isFeatured,
     required super.isPublished,
+    super.imageUrl,
   });
 
   factory CourseModel.fromJson(Map<String, dynamic> json) {
@@ -31,7 +32,8 @@ class CourseModel extends Course {
       rating: (json['rating'] as num).toDouble(),
       completionPercent: (json['completionPercent'] as num).toDouble(),
       isFeatured: json['isFeatured'] as bool,
-      isPublished: json['isPublished'] as bool,
+      isPublished: (json['isPublished'] as bool?) ?? false,
+      imageUrl: json['imageUrl'] as String?,
     );
   }
 
@@ -50,6 +52,7 @@ class CourseModel extends Course {
     double? completionPercent,
     bool? isFeatured,
     bool? isPublished,
+    String? imageUrl,
   }) {
     return CourseModel(
       id: id ?? this.id,
@@ -65,6 +68,7 @@ class CourseModel extends Course {
       completionPercent: completionPercent ?? this.completionPercent,
       isFeatured: isFeatured ?? this.isFeatured,
       isPublished: isPublished ?? this.isPublished,
+      imageUrl: imageUrl ?? this.imageUrl,
     );
   }
 
@@ -83,6 +87,7 @@ class CourseModel extends Course {
       'completionPercent': completionPercent,
       'isFeatured': isFeatured,
       'isPublished': isPublished,
+      'imageUrl': imageUrl,
     };
   }
 }

@@ -35,6 +35,7 @@ class CoursesRepositoryImpl implements CoursesRepository {
     required String category,
     required String level,
     required bool isPublished,
+    File? imageFile,
   }) {
     return _dataSource.createCourse(
       title: title,
@@ -43,6 +44,7 @@ class CoursesRepositoryImpl implements CoursesRepository {
       category: category,
       level: level,
       isPublished: isPublished,
+      imageFile: imageFile,
     );
   }
 
@@ -55,6 +57,7 @@ class CoursesRepositoryImpl implements CoursesRepository {
     required String category,
     required String level,
     required bool isPublished,
+    File? imageFile,
   }) {
     return _dataSource.updateCourse(
       id: id,
@@ -64,6 +67,7 @@ class CoursesRepositoryImpl implements CoursesRepository {
       category: category,
       level: level,
       isPublished: isPublished,
+      imageFile: imageFile,
     );
   }
 

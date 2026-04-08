@@ -18,6 +18,7 @@ abstract class CoursesRepository {
     required String category,
     required String level,
     required bool isPublished,
+    File? imageFile,
   });
 
   Future<Course> updateCourse({
@@ -28,6 +29,7 @@ abstract class CoursesRepository {
     required String category,
     required String level,
     required bool isPublished,
+    File? imageFile,
   });
 
   Future<void> deleteCourse(String id);

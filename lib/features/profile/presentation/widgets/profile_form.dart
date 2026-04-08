@@ -7,6 +7,7 @@ import 'package:e_learning/features/profile/domain/entities/profile.dart';
 import 'package:e_learning/features/profile/presentation/cubit/profile_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ProfileForm extends StatefulWidget {
@@ -92,9 +93,11 @@ class _ProfileFormState extends State<ProfileForm> {
     );
 
     // Sync with AuthCubit
-    final role = widget.profile.role == 'admin'
+    final currentAuthUser = context.read<AuthCubit>().state.user;
+    final role = currentAuthUser?.role ?? (widget.profile.role == 'admin'
         ? UserRole.admin
-        : UserRole.student;
+        : UserRole.student);
+
     context.read<AuthCubit>().updateUser(
       AppUser(
         id: updatedProfile.id,
@@ -107,12 +110,34 @@ class _ProfileFormState extends State<ProfileForm> {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<ProfileCubit>().state;
     final theme = Theme.of(context);
 
-    return Form(
-      key: _formKey,
-      child: Column(
+    return BlocListener<ProfileCubit, ProfileState>(
+      listener: (context, state) {
+        if (state.status == ProfileStatus.updated) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Profile updated successfully! Please log in again with your updated info.',
+              ),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+          // Wait for snackbar then logout
+          Future.delayed(const Duration(seconds: 2), () {
+            if (context.mounted) {
+              context.read<AuthCubit>().signOut();
+              context.go('/login');
+            }
+          });
+        }
+      },
+      child: BlocBuilder<ProfileCubit, ProfileState>(
+        builder: (context, state) {
+          return Form(
+            key: _formKey,
+            child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Profile Image
@@ -371,5 +396,8 @@ class _ProfileFormState extends State<ProfileForm> {
         ],
       ),
     );
+  },
+),
+);
   }
 }

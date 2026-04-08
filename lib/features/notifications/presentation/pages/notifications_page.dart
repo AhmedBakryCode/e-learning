@@ -41,121 +41,126 @@ class NotificationsPage extends StatelessWidget {
                   message: state.errorMessage ?? 'Try again shortly.',
                   icon: Icons.notifications_off_rounded,
                 ),
-                _ => ListView(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.pagePadding,
-                    0,
-                    AppSpacing.pagePadding,
-                    AppSpacing.huge,
-                  ),
-                  children: [
-                    AppCard(
-                      child: Row(
-                        children: [
-                          const Icon(Icons.podcasts_rounded),
-                          const SizedBox(width: AppSpacing.sm),
-                          Expanded(
-                            child: Text(
-                              state.isLive
-                                  ? 'Live updates are online'
-                                  : 'Waiting for live updates',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                          ),
-                          StatusChip(
-                            label: state.isLive ? 'Live' : 'Offline',
-                            color: state.isLive
-                                ? AppColors.success
-                                : AppColors.warning,
-                            icon: state.isLive
-                                ? Icons.bolt_rounded
-                                : Icons.pause_circle_outline_rounded,
-                          ),
-                        ],
-                      ),
+                _ => RefreshIndicator(
+                  onRefresh: () async {
+                    await context.read<NotificationsCubit>().loadNotifications();
+                  },
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.pagePadding,
+                      0,
+                      AppSpacing.pagePadding,
+                      AppSpacing.huge,
                     ),
-                    const SizedBox(height: AppSpacing.sectionGap),
-                    if (state.notifications.isEmpty)
-                      const EmptyStateWidget(
-                        title: 'No notifications yet',
-                        message:
-                            'Notifications from your teacher\'s dashboard will appear here.',
-                        icon: Icons.notifications_none_rounded,
-                      )
-                    else
-                      ResponsiveGrid(
-                        mobileCrossAxisCount: 2,
-                        tabletCrossAxisCount: 2,
-                        desktopCrossAxisCount: 2,
-                        children: state.notifications.map((notification) {
-                          return InkWell(
-                            onTap: role == UserRole.student
-                                ? () => _openNotificationDetails(
-                                    context,
-                                    notification,
-                                  )
-                                : null,
-                            borderRadius: BorderRadius.circular(AppRadii.xl),
-                            child: AppCard(
-                              title: notification.title,
-                              subtitle: notification.timeLabel,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    notification.message,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall,
-                                  ),
-                                  if (notification.zoomMeetingLink != null &&
-                                      MediaQuery.of(context).size.width >=
-                                          400) ...[
-                                    const SizedBox(height: AppSpacing.sm),
-                                    Text(
-                                      notification.zoomMeetingLink!,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall
-                                          ?.copyWith(
-                                            color: AppColors.secondary,
-                                          ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
-                                  const SizedBox(height: AppSpacing.md),
-                                  Wrap(
-                                    spacing: AppSpacing.xs,
-                                    runSpacing: AppSpacing.xs,
-                                    children: [
-                                      StatusChip(
-                                        label: notification.isRead
-                                            ? 'Readable'
-                                            : 'Illegible',
-                                        color: notification.isRead
-                                            ? AppColors.success
-                                            : AppColors.secondary,
-                                        icon: notification.isRead
-                                            ? Icons.done_all_rounded
-                                            : Icons.mark_chat_unread_rounded,
-                                      ),
-                                      StatusChip(
-                                        label: notification.audienceLabel,
-                                        color: AppColors.primary,
-                                        icon: Icons.groups_rounded,
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                    children: [
+                      AppCard(
+                        child: Row(
+                          children: [
+                            const Icon(Icons.podcasts_rounded),
+                            const SizedBox(width: AppSpacing.sm),
+                            Expanded(
+                              child: Text(
+                                state.isLive
+                                    ? 'Live updates are online'
+                                    : 'Waiting for live updates',
+                                style: Theme.of(context).textTheme.titleMedium,
                               ),
                             ),
-                          );
-                        }).toList(),
+                            StatusChip(
+                              label: state.isLive ? 'Live' : 'Offline',
+                              color: state.isLive
+                                  ? AppColors.success
+                                  : AppColors.warning,
+                              icon: state.isLive
+                                  ? Icons.bolt_rounded
+                                  : Icons.pause_circle_outline_rounded,
+                            ),
+                          ],
+                        ),
                       ),
-                  ],
+                      const SizedBox(height: AppSpacing.sectionGap),
+                      if (state.notifications.isEmpty)
+                        const EmptyStateWidget(
+                          title: 'No notifications yet',
+                          message:
+                              'Notifications from your teacher\'s dashboard will appear here.',
+                          icon: Icons.notifications_none_rounded,
+                        )
+                      else
+                        ResponsiveGrid(
+                          mobileCrossAxisCount: 2,
+                          tabletCrossAxisCount: 2,
+                          desktopCrossAxisCount: 2,
+                          children: state.notifications.map((notification) {
+                            return InkWell(
+                              onTap: role == UserRole.student
+                                  ? () => _openNotificationDetails(
+                                      context,
+                                      notification,
+                                    )
+                                  : null,
+                              borderRadius: BorderRadius.circular(AppRadii.xl),
+                              child: AppCard(
+                                title: notification.title,
+                                subtitle: notification.timeLabel,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      notification.message,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodySmall,
+                                    ),
+                                    if (notification.zoomMeetingLink != null &&
+                                        MediaQuery.of(context).size.width >=
+                                            400) ...[
+                                      const SizedBox(height: AppSpacing.sm),
+                                      Text(
+                                        notification.zoomMeetingLink!,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              color: AppColors.secondary,
+                                            ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                    const SizedBox(height: AppSpacing.md),
+                                    Wrap(
+                                      spacing: AppSpacing.xs,
+                                      runSpacing: AppSpacing.xs,
+                                      children: [
+                                        StatusChip(
+                                          label: notification.isRead
+                                              ? 'Readable'
+                                              : 'Illegible',
+                                          color: notification.isRead
+                                              ? AppColors.success
+                                              : AppColors.secondary,
+                                          icon: notification.isRead
+                                              ? Icons.done_all_rounded
+                                              : Icons.mark_chat_unread_rounded,
+                                        ),
+                                        StatusChip(
+                                          label: notification.audienceLabel,
+                                          color: AppColors.primary,
+                                          icon: Icons.groups_rounded,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                    ],
+                  ),
                 ),
               },
             ),

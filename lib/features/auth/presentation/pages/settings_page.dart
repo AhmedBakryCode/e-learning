@@ -6,12 +6,39 @@ import 'package:e_learning/core/widgets/section_header.dart';
 import 'package:e_learning/core/widgets/responsive_layout.dart';
 import 'package:e_learning/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:e_learning/features/auth/domain/entities/app_user.dart';
+import 'package:e_learning/features/head/domain/entities/head.dart';
+import 'package:e_learning/features/head/presentation/cubit/head_cubit.dart';
+import 'package:e_learning/features/head/presentation/widgets/edit_head_dialog.dart';
+import 'package:e_learning/core/di/service_locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => sl<HeadCubit>(),
+      child: const _SettingsView(),
+    );
+  }
+}
+
+class _SettingsView extends StatefulWidget {
+  const _SettingsView();
+
+  @override
+  State<_SettingsView> createState() => _SettingsViewState();
+}
+
+class _SettingsViewState extends State<_SettingsView> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<HeadCubit>().fetchHeads();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -136,6 +163,10 @@ class SettingsPage extends StatelessWidget {
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
+              if (user?.role == UserRole.admin) ...[
+                const Divider(height: AppSpacing.xxl),
+                const _HeadsManagementTile(),
+              ],
             ],
           ),
         ),
@@ -323,6 +354,186 @@ class _SettingRow extends StatelessWidget {
           trailing,
         ],
       ),
+    );
+  }
+}
+
+class _HeadsManagementTile extends StatelessWidget {
+  const _HeadsManagementTile();
+
+  @override
+  Widget build(BuildContext context) {
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        tilePadding: EdgeInsets.zero,
+        leading: Container(
+          padding: const EdgeInsets.all(AppSpacing.sm),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primary.withAlpha(20),
+            borderRadius: BorderRadius.circular(AppRadii.md),
+          ),
+          child: Icon(
+            Icons.admin_panel_settings_outlined,
+            color: Theme.of(context).colorScheme.primary,
+            size: 20,
+          ),
+        ),
+        title: Text(
+          'Heads',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        subtitle: Text(
+          'Manage app carousel heads',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color:
+                Theme.of(context).textTheme.bodySmall?.color?.withAlpha(180),
+          ),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: Icon(
+                Icons.add_circle_outline_rounded,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder:
+                      (_) => BlocProvider.value(
+                        value: context.read<HeadCubit>(),
+                        child: const EditHeadDialog(),
+                      ),
+                );
+              },
+            ),
+            const Icon(Icons.expand_more_rounded, size: 20),
+          ],
+        ),
+        children: [
+          BlocBuilder<HeadCubit, HeadState>(
+            builder: (context, state) {
+              if (state is HeadLoading) {
+                return const Padding(
+                  padding: EdgeInsets.all(AppSpacing.md),
+                  child: Center(
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                );
+              }
+
+              if (state is HeadLoaded) {
+                if (state.heads.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.all(AppSpacing.md),
+                    child: Text('No heads found'),
+                  );
+                }
+
+                return Column(
+                  children:
+                      state.heads.map((head) {
+                        return Padding(
+                          padding: const EdgeInsets.only(
+                            left: AppSpacing.huge,
+                            bottom: AppSpacing.sm,
+                          ),
+                          child: ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: CircleAvatar(
+                              radius: 20,
+                              backgroundImage: NetworkImage(head.imageUrl),
+                            ),
+                            title: Text(
+                              head.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                            subtitle: Text(
+                              head.title,
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit_outlined, size: 18),
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder:
+                                          (_) => BlocProvider.value(
+                                            value: context.read<HeadCubit>(),
+                                            child: EditHeadDialog(head: head),
+                                          ),
+                                    );
+                                  },
+                                ),
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.delete_outline_rounded,
+                                    size: 18,
+                                    color: Theme.of(context).colorScheme.error,
+                                  ),
+                                  onPressed: () {
+                                    _showDeleteConfirm(context, head);
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                );
+              }
+
+              if (state is HeadError) {
+                return Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Text(
+                    'Error: ${state.message}',
+                    style: TextStyle(color: Theme.of(context).colorScheme.error),
+                  ),
+                );
+              }
+
+              return const SizedBox();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteConfirm(BuildContext context, Head head) {
+    showDialog(
+      context: context,
+      builder:
+          (dialogContext) => AlertDialog(
+            title: const Text('Delete Head'),
+            content: Text('Are you sure you want to delete "${head.name}"?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  context.read<HeadCubit>().deleteHead(head.id);
+                  Navigator.pop(dialogContext);
+                },
+                style: FilledButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.error,
+                  foregroundColor: Theme.of(context).colorScheme.onError,
+                ),
+                child: const Text('Delete'),
+              ),
+            ],
+          ),
     );
   }
 }

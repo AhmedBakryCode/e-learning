@@ -15,6 +15,7 @@ class Course extends Equatable {
     required this.completionPercent,
     required this.isFeatured,
     required this.isPublished,
+    this.imageUrl,
   });
 
   final String id;
@@ -30,6 +31,7 @@ class Course extends Equatable {
   final double completionPercent;
   final bool isFeatured;
   final bool isPublished;
+  final String? imageUrl;
 
   Course copyWith({
     String? id,
@@ -45,6 +47,7 @@ class Course extends Equatable {
     double? completionPercent,
     bool? isFeatured,
     bool? isPublished,
+    String? imageUrl,
   }) {
     return Course(
       id: id ?? this.id,
@@ -60,6 +63,7 @@ class Course extends Equatable {
       completionPercent: completionPercent ?? this.completionPercent,
       isFeatured: isFeatured ?? this.isFeatured,
       isPublished: isPublished ?? this.isPublished,
+      imageUrl: imageUrl ?? this.imageUrl,
     );
   }
 
@@ -78,5 +82,6 @@ class Course extends Equatable {
     completionPercent,
     isFeatured,
     isPublished,
+    imageUrl,
   ];
 }

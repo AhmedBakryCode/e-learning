@@ -22,6 +22,7 @@ abstract class CoursesDataSource {
     required String category,
     required String level,
     required bool isPublished,
+    File? imageFile,
   });
 
   Future<CourseModel> updateCourse({
@@ -32,6 +33,7 @@ abstract class CoursesDataSource {
     required String category,
     required String level,
     required bool isPublished,
+    File? imageFile,
   });
 
   Future<void> deleteCourse(String id);
@@ -84,18 +86,23 @@ class RemoteCoursesDataSource implements CoursesDataSource {
     required String category,
     required String level,
     required bool isPublished,
+    File? imageFile,
   }) async {
-    final response = await _apiService.post(
-      '/courses',
-      data: {
-        'title': title,
-        'description': description,
-        'instructorName': instructorName,
-        'category': category,
-        'level': level,
-        'isPublished': isPublished,
-      },
-    );
+    final formData = FormData.fromMap({
+      'Title': title,
+      'Description': description,
+      'InstructorName': instructorName,
+      'Category': category,
+      'Level': level,
+      'IsPublished': isPublished,
+      if (imageFile != null)
+        'Image': await MultipartFile.fromFile(
+          imageFile.path,
+          filename: imageFile.path.split('/').last,
+        ),
+    });
+
+    final response = await _apiService.post('/courses', data: formData);
     return CourseModel.fromJson(response.data);
   }
 
@@ -108,18 +115,23 @@ class RemoteCoursesDataSource implements CoursesDataSource {
     required String category,
     required String level,
     required bool isPublished,
+    File? imageFile,
   }) async {
-    final response = await _apiService.put(
-      '/courses/$id',
-      data: {
-        'title': title,
-        'description': description,
-        'instructorName': instructorName,
-        'category': category,
-        'level': level,
-        'isPublished': isPublished,
-      },
-    );
+    final formData = FormData.fromMap({
+      'Title': title,
+      'Description': description,
+      'InstructorName': instructorName,
+      'Category': category,
+      'Level': level,
+      'IsPublished': isPublished,
+      if (imageFile != null)
+        'Image': await MultipartFile.fromFile(
+          imageFile.path,
+          filename: imageFile.path.split('/').last,
+        ),
+    });
+
+    final response = await _apiService.put('/courses/$id', data: formData);
     return CourseModel.fromJson(response.data);
   }
 
@@ -580,6 +592,7 @@ class MockCoursesDataSource implements CoursesDataSource {
     required String category,
     required String level,
     required bool isPublished,
+    File? imageFile,
   }) async {
     await Future<void>.delayed(AppDurations.medium);
 
@@ -597,6 +610,7 @@ class MockCoursesDataSource implements CoursesDataSource {
       completionPercent: 0,
       isFeatured: false,
       isPublished: isPublished,
+      imageUrl: imageFile?.path,
     );
 
     _courses.insert(0, course);
@@ -613,6 +627,7 @@ class MockCoursesDataSource implements CoursesDataSource {
     required String category,
     required String level,
     required bool isPublished,
+    File? imageFile,
   }) async {
     await Future<void>.delayed(AppDurations.medium);
 
@@ -628,6 +643,7 @@ class MockCoursesDataSource implements CoursesDataSource {
       category: category,
       level: level,
       isPublished: isPublished,
+      imageUrl: imageFile?.path,
     );
 
     _courses[index] = updated;

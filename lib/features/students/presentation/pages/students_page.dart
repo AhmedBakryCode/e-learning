@@ -62,59 +62,64 @@ class StudentsPage extends StatelessWidget {
                       child: const Text('Retry'),
                     ),
                   ),
-                _ => ListView(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.pagePadding,
-                      0,
-                      AppSpacing.pagePadding,
-                      AppSpacing.huge,
-                    ),
-                    children: [
-                      const SectionHeader(
-                        title: 'Overview',
-                        subtitle: 'Add, edit, delete students or review their details from one list.',
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      if (state.students.isEmpty)
-                        const EmptyStateWidget(
-                          title: 'There are no students yet',
-                          message: 'Create your first student to start managing students.',
-                          icon: Icons.person_search_rounded,
-                        )
-                      else
-                        ResponsiveGrid(
-                          mobileCrossAxisCount: 2,
-                          tabletCrossAxisCount: 2,
-                          desktopCrossAxisCount: 3,
-                          children: state.students.map((student) {
-                            return StudentCard(
-                              onTap: () => context.push('/admin/students/${student.id}'),
-                              student: student,
-                              trailing: PopupMenuButton<String>(
-                                onSelected: (value) async {
-                                  if (value == 'edit') {
-                                    context.push('/admin/students/${student.id}/edit');
-                                  }
-                                  if (value == 'delete') {
-                                    final confirmed = await _confirmDeleteStudent(
-                                      context,
-                                      student.name,
-                                    );
-                                    if (confirmed && context.mounted) {
-                                      await context.read<StudentsCubit>().deleteStudent(student.id);
-                                    }
-                                  }
-                                },
-                                itemBuilder: (context) => const [
-                                  PopupMenuItem(value: 'edit', child: Text('Edit Student')),
-                                  PopupMenuDivider(),
-                                  PopupMenuItem(value: 'delete', child: Text('Delete student')),
-                                ],
-                              ),
-                            );
-                          }).toList(),
+                _ => RefreshIndicator(
+                    onRefresh: () async {
+                      await context.read<StudentsCubit>().loadStudents();
+                    },
+                    child: ListView(
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.pagePadding,
+                          0,
+                          AppSpacing.pagePadding,
+                          AppSpacing.huge,
                         ),
-                    ],
+                        children: [
+                          const SectionHeader(
+                            title: 'Overview',
+                            subtitle: 'Add, edit, delete students or review their details from one list.',
+                          ),
+                          const SizedBox(height: AppSpacing.lg),
+                          if (state.students.isEmpty)
+                            const EmptyStateWidget(
+                              title: 'There are no students yet',
+                              message: 'Create your first student to start managing students.',
+                              icon: Icons.person_search_rounded,
+                            )
+                          else
+                            ResponsiveGrid(
+                              mobileCrossAxisCount: 2,
+                              tabletCrossAxisCount: 2,
+                              desktopCrossAxisCount: 3,
+                              children: state.students.map((student) {
+                                return StudentCard(
+                                  onTap: () => context.push('/admin/students/${student.id}'),
+                                  student: student,
+                                  trailing: PopupMenuButton<String>(
+                                    onSelected: (value) async {
+                                      if (value == 'edit') {
+                                        context.push('/admin/students/${student.id}/edit');
+                                      }
+                                      if (value == 'delete') {
+                                        final confirmed = await _confirmDeleteStudent(
+                                          context,
+                                          student.name,
+                                        );
+                                        if (confirmed && context.mounted) {
+                                          await context.read<StudentsCubit>().deleteStudent(student.id);
+                                        }
+                                      }
+                                    },
+                                    itemBuilder: (context) => const [
+                                      PopupMenuItem(value: 'edit', child: Text('Edit Student')),
+                                      PopupMenuDivider(),
+                                      PopupMenuItem(value: 'delete', child: Text('Delete student')),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                        ],
+                      ),
                   ),
               },
             ),

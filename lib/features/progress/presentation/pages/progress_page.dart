@@ -38,7 +38,7 @@ class ProgressPage extends StatelessWidget {
             navigationDestinations: isStudent ? _getDestinations() : const [],
             body: AnimatedSwitcher(
               duration: AppDurations.medium,
-              child: _buildBody(state),
+              child: _buildBody(context, state),
             ),
           );
         },
@@ -46,64 +46,95 @@ class ProgressPage extends StatelessWidget {
     );
   }
 
-  Widget _buildBody(ProgressState state) {
+  Widget _buildBody(BuildContext context, ProgressState state) {
     if (state.status == ViewStateStatus.loading) {
       return const LoadingIndicator(label: 'Loading progress...');
     }
 
     if (state.status == ViewStateStatus.failure) {
-      return EmptyStateWidget(
-        title: 'Unable to load progress',
-        message: state.errorMessage ?? 'Try again shortly.',
-        icon: Icons.show_chart_rounded,
+      return RefreshIndicator(
+        onRefresh: () async {
+          await context.read<ProgressCubit>().loadProgress();
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.7,
+            child: EmptyStateWidget(
+              title: 'Unable to load progress',
+              message: state.errorMessage ?? 'Try again shortly.',
+              icon: Icons.show_chart_rounded,
+              action: FilledButton(
+                onPressed: () => context.read<ProgressCubit>().loadProgress(),
+                child: const Text('Retry'),
+              ),
+            ),
+          ),
+        ),
       );
     }
 
     if (state.progressItems.isEmpty) {
-      return const EmptyStateWidget(
-        title: 'There is no progress currently',
-        message:
-            'Progress will begin to be recorded once you start watching the Courses.',
-        icon: Icons.school_outlined,
+      return RefreshIndicator(
+        onRefresh: () async {
+          await context.read<ProgressCubit>().loadProgress();
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.7,
+            child: const EmptyStateWidget(
+              title: 'There is no progress currently',
+              message:
+                  'Progress will begin to be recorded once you start watching the Courses.',
+              icon: Icons.school_outlined,
+            ),
+          ),
+        ),
       );
     }
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.pagePadding,
-        0,
-        AppSpacing.pagePadding,
-        AppSpacing.huge,
-      ),
-      children: [
-        ResponsiveGrid(
-          mobileCrossAxisCount: 1,
-          tabletCrossAxisCount: 1,
-          desktopCrossAxisCount: 1,
-          children: state.progressItems.map((progress) {
-            return AppCard(
-              title: progress.courseTitle,
-              subtitle:
-                  'Lesson ${progress.currentLesson} from ${progress.totalLessons}',
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  LinearProgressIndicator(
-                    value: progress.completionPercent,
-                    minHeight: 8,
-                    borderRadius: BorderRadius.circular(AppRadii.pill),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    '${(progress.completionPercent * 100).round()}% completed',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            );
-          }).toList(),
+    return RefreshIndicator(
+      onRefresh: () async {
+        await context.read<ProgressCubit>().loadProgress();
+      },
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.pagePadding,
+          0,
+          AppSpacing.pagePadding,
+          AppSpacing.huge,
         ),
-      ],
+        children: [
+          ResponsiveGrid(
+            mobileCrossAxisCount: 1,
+            tabletCrossAxisCount: 1,
+            desktopCrossAxisCount: 1,
+            children: state.progressItems.map((progress) {
+              return AppCard(
+                title: progress.courseTitle,
+                subtitle:
+                    'Lesson ${progress.currentLesson} from ${progress.totalLessons}',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    LinearProgressIndicator(
+                      value: progress.completionPercent,
+                      minHeight: 8,
+                      borderRadius: BorderRadius.circular(AppRadii.pill),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      '${(progress.completionPercent * 100).round()}% completed',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
     );
   }
 

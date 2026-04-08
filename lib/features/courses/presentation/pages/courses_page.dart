@@ -170,166 +170,151 @@ class _CoursesLoaded extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.pagePadding,
-        0,
-        AppSpacing.pagePadding,
-        AppSpacing.huge,
-      ),
-      children: [
-        if (role == UserRole.admin) ...[
-          const InlineFeedbackCard(
-            title: 'The permissions system has been updated',
-            message:
-                'You can now drag Courses to rearrange them or tap and hold to quickly change their publishing status.',
-            color: AppColors.secondary,
-            icon: Icons.info_outline_rounded,
-          ),
-          const SizedBox(height: AppSpacing.sectionGap),
-          Row(
-            children: const [
-              Expanded(
-                child: MetricHighlightCard(
-                  title: 'Active Courses',
-                  value: '24',
-                  subtitle: '+3 this month',
-                  icon: Icons.auto_awesome_rounded,
-                  color: AppColors.primary,
-                ),
-              ),
-              SizedBox(width: AppSpacing.lg),
-              Expanded(
-                child: MetricHighlightCard(
-                  title: 'Total students',
-                  value: '1.2k',
-                  subtitle: '+12%',
-                  icon: Icons.moving_rounded,
-                  color: AppColors.success,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sectionGap),
-        ],
-        const CustomTextField(
-          prefixIcon: Icon(Icons.search_rounded),
-          hintText: 'Search for a Course, teacher, or category...',
+    return RefreshIndicator(
+      onRefresh: () async {
+        final futures = <Future>[context.read<CoursesCubit>().loadCourses(role)];
+        if (role == UserRole.student) {
+          final user = context.read<AuthCubit>().state.user;
+          futures.add(
+            context.read<ProgressCubit>().loadProgress(studentId: user?.id),
+          );
+        }
+        await Future.wait(futures);
+      },
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.pagePadding,
+          0,
+          AppSpacing.pagePadding,
+          AppSpacing.huge,
         ),
-        const SizedBox(height: AppSpacing.sectionGap),
-        if (role == UserRole.admin) ...[
-          // const SectionHeader(
-          //   title: 'Distinctive Courses',
-          //   subtitle: 'The best rated and most popular content among students.',
-          // ),
-          // const SizedBox(height: AppSpacing.lg),
-          // SizedBox(
-          //   height: 400,
-          //   child: ListView.separated(
-          //     scrollDirection: Axis.horizontal,
-          //     itemCount: state.featuredCourses.length,
-          //     separatorBuilder: (context, index) =>
-          //         const SizedBox(width: AppSpacing.lg),
-          //     itemBuilder: (context, index) {
-          //       final course = state.featuredCourses[index];
-          //       return SizedBox(
-          //         width: 310,
-          //         child: CourseFeaturedCard(
-          //           course: course,
-          //           onTap: () => _openCourse(context, role, course.id),
-          //         ),
-          //       );
-          //     },
-          //   ),
-          // ),
-          // const SizedBox(height: AppSpacing.xxxl),
+        children: [
+          if (role == UserRole.admin) ...[
+            const InlineFeedbackCard(
+              title: 'The permissions system has been updated',
+              message:
+                  'You can now drag Courses to rearrange them or tap and hold to quickly change their publishing status.',
+              color: AppColors.secondary,
+              icon: Icons.info_outline_rounded,
+            ),
+            const SizedBox(height: AppSpacing.sectionGap),
+            Row(
+              children: const [
+                Expanded(
+                  child: MetricHighlightCard(
+                    title: 'Active Courses',
+                    value: '24',
+                    subtitle: '+3 this month',
+                    icon: Icons.auto_awesome_rounded,
+                    color: AppColors.primary,
+                  ),
+                ),
+                SizedBox(width: AppSpacing.lg),
+                Expanded(
+                  child: MetricHighlightCard(
+                    title: 'Total students',
+                    value: '1.2k',
+                    subtitle: '+12%',
+                    icon: Icons.moving_rounded,
+                    color: AppColors.success,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sectionGap),
+          ],
+          const CustomTextField(
+            prefixIcon: Icon(Icons.search_rounded),
+            hintText: 'Search for a Course, teacher, or category...',
+          ),
+          const SizedBox(height: AppSpacing.sectionGap),
+          if (role == UserRole.admin) ...[
+            const SectionHeader(
+              title: 'Control menu',
+              subtitle:
+                  'Click the arrow for quick access to edit or review options.',
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            _AdminCoursesList(state: state),
+          ] else
+            BlocBuilder<ProgressCubit, ProgressState>(
+              builder: (context, progressState) {
+                final myCourses = state.filteredCourses
+                    .where((course) => course.isFeatured)
+                    .toList();
+
+                final otherCourses = state.filteredCourses
+                    .where((course) => !course.isFeatured)
+                    .toList();
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SectionHeader(
+                      title: 'My Enrolled Courses',
+                      subtitle: 'Access all videos and track your progress.',
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    if (myCourses.isEmpty)
+                      const EmptyStateWidget(
+                        title: 'You are not subscribed to any course',
+                        message:
+                            'Explore available courses below and contact us to enroll.',
+                        icon: Icons.school_outlined,
+                      )
+                    else
+                      ResponsiveGrid(
+                        mobileCrossAxisCount: 1,
+                        tabletCrossAxisCount: 2,
+                        desktopCrossAxisCount: 3,
+                        children: myCourses
+                            .map(
+                              (course) => CourseCard(
+                                course: course,
+                                role: role,
+                                actionLabel: 'Continue Learning',
+                                onTap: () =>
+                                    _openCourse(context, role, course.id),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    const SizedBox(height: AppSpacing.xxxl),
+
+                    const SectionHeader(
+                      title: 'Available Courses',
+                      subtitle:
+                          'Contact us via WhatsApp or Telegram to enroll: 01065406332',
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    if (otherCourses.isEmpty)
+                      const EmptyStateWidget(
+                        title: 'No available courses at the moment',
+                        message:
+                            'All courses are currently available for enrollment. Check back soon!',
+                        icon: Icons.check_circle_outline_rounded,
+                      )
+                    else
+                      ResponsiveGrid(
+                        mobileCrossAxisCount: 1,
+                        tabletCrossAxisCount: 2,
+                        desktopCrossAxisCount: 3,
+                        children: otherCourses
+                            .map(
+                              (course) => _NonEnrolledCourseCard(
+                                course: course,
+                                onContact: () =>
+                                    _showContactOptions(context, course.title),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                  ],
+                );
+              },
+            ),
         ],
-        if (role == UserRole.admin) ...[
-          const SectionHeader(
-            title: 'Control menu',
-            subtitle:
-                'Click the arrow for quick access to edit or review options.',
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          _AdminCoursesList(state: state),
-        ] else
-          BlocBuilder<ProgressCubit, ProgressState>(
-            builder: (context, progressState) {
-              final myCourses = state.filteredCourses
-                  .where((course) => course.isFeatured)
-                  .toList();
-
-              final otherCourses = state.filteredCourses
-                  .where((course) => !course.isFeatured)
-                  .toList();
-
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SectionHeader(
-                    title: 'My Enrolled Courses',
-                    subtitle: 'Access all videos and track your progress.',
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  if (myCourses.isEmpty)
-                    const EmptyStateWidget(
-                      title: 'You are not subscribed to any course',
-                      message:
-                          'Explore available courses below and contact us to enroll.',
-                      icon: Icons.school_outlined,
-                    )
-                  else
-                    ResponsiveGrid(
-                      mobileCrossAxisCount: 1,
-                      tabletCrossAxisCount: 2,
-                      desktopCrossAxisCount: 3,
-                      children: myCourses
-                          .map(
-                            (course) => CourseCard(
-                              course: course,
-                              role: role,
-                              actionLabel: 'Continue Learning',
-                              onTap: () =>
-                                  _openCourse(context, role, course.id),
-                            ),
-                          )
-                          .toList(),
-                    ),
-                  const SizedBox(height: AppSpacing.xxxl),
-
-                  const SectionHeader(
-                    title: 'Available Courses',
-                    subtitle:
-                        'Contact us via WhatsApp or Telegram to enroll: 01065406332',
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  if (otherCourses.isEmpty)
-                    const EmptyStateWidget(
-                      title: 'No available courses at the moment',
-                      message:
-                          'All courses are currently available for enrollment. Check back soon!',
-                      icon: Icons.check_circle_outline_rounded,
-                    )
-                  else
-                    ResponsiveGrid(
-                      mobileCrossAxisCount: 1,
-                      tabletCrossAxisCount: 2,
-                      desktopCrossAxisCount: 3,
-                      children: otherCourses
-                          .map(
-                            (course) => _NonEnrolledCourseCard(
-                              course: course,
-                              onContact: () =>
-                                  _showContactOptions(context, course.title),
-                            ),
-                          )
-                          .toList(),
-                    ),
-                ],
-              );
-            },
-          ),
-      ],
+      ),
     );
   }
 
@@ -553,6 +538,29 @@ class _NonEnrolledCourseCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Course Image
+          Container(
+            height: 140,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: accentColor.withValues(alpha: 0.1),
+              image: course.imageUrl != null
+                  ? DecorationImage(
+                      image: NetworkImage(course.imageUrl!),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+            ),
+            child: course.imageUrl == null
+                ? Center(
+                    child: Icon(
+                      _categoryIcon(course.category),
+                      color: accentColor,
+                      size: 40,
+                    ),
+                  )
+                : null,
+          ),
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(

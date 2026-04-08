@@ -222,11 +222,23 @@ class _CourseHeaderCard extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.xxl),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppRadii.xxl),
-        gradient: const LinearGradient(
-          colors: [AppColors.primary, AppColors.primarySoft],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        image: course.imageUrl != null
+            ? DecorationImage(
+                image: NetworkImage(course.imageUrl!),
+                fit: BoxFit.cover,
+                colorFilter: ColorFilter.mode(
+                  Colors.black.withAlpha(140),
+                  BlendMode.darken,
+                ),
+              )
+            : null,
+        gradient: course.imageUrl == null
+            ? const LinearGradient(
+                colors: [AppColors.primary, AppColors.primarySoft],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : null,
         boxShadow: AppShadows.elevated,
       ),
       child: Column(

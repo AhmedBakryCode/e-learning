@@ -13,6 +13,7 @@ import 'package:e_learning/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:e_learning/features/auth/presentation/cubit/auth_state.dart';
 import 'package:e_learning/features/auth/presentation/cubit/student_dashboard_cubit.dart';
 import 'package:e_learning/features/auth/presentation/cubit/student_dashboard_state.dart';
+import 'package:e_learning/features/auth/presentation/cubit/showcase_cubit.dart';
 import 'package:e_learning/features/auth/domain/entities/app_user.dart';
 import 'package:e_learning/features/courses/presentation/widgets/course_card.dart';
 import 'package:e_learning/features/courses/presentation/widgets/course_featured_card.dart';
@@ -45,6 +46,9 @@ class StudentDashboardPage extends StatelessWidget {
         ),
         BlocProvider(
           create: (_) => sl<NotificationsCubit>()..loadNotifications(),
+        ),
+        BlocProvider(
+          create: (_) => sl<ShowcaseCubit>()..loadShowcase(),
         ),
       ],
       child: BlocBuilder<StudentDashboardCubit, StudentDashboardState>(
@@ -98,26 +102,37 @@ class StudentDashboardPage extends StatelessWidget {
                 icon: const Icon(Icons.logout_rounded),
               ),
             ],
-            body: AnimatedSwitcher(
-              duration: AppDurations.medium,
-              child: switch (state.status) {
-                ViewStateStatus.loading => const _StudentDashboardLoading(),
-                ViewStateStatus.failure => EmptyStateWidget(
-                  title: 'Unable to download Courses',
-                  message: state.errorMessage ?? 'Try again shortly.',
-                  icon: Icons.school_outlined,
-                  action: FilledButton(
-                    onPressed: () => context
-                        .read<StudentDashboardCubit>()
-                        .loadDashboard(student.id),
-                    child: const Text('Retry'),
-                  ),
-                ),
-                _ => _StudentDashboardContent(
-                  studentName: student.name,
-                  state: state,
-                ),
+            body: RefreshIndicator(
+              onRefresh: () async {
+                await Future.wait([
+                  context
+                      .read<StudentDashboardCubit>()
+                      .loadDashboard(student.id),
+                  context.read<NotificationsCubit>().loadNotifications(),
+                  context.read<ShowcaseCubit>().loadShowcase(),
+                ]);
               },
+              child: AnimatedSwitcher(
+                duration: AppDurations.medium,
+                child: switch (state.status) {
+                  ViewStateStatus.loading => const _StudentDashboardLoading(),
+                  ViewStateStatus.failure => EmptyStateWidget(
+                    title: 'Unable to download Courses',
+                    message: state.errorMessage ?? 'Try again shortly.',
+                    icon: Icons.school_outlined,
+                    action: FilledButton(
+                      onPressed: () => context
+                          .read<StudentDashboardCubit>()
+                          .loadDashboard(student.id),
+                      child: const Text('Retry'),
+                    ),
+                  ),
+                  _ => _StudentDashboardContent(
+                    studentName: student.name,
+                    state: state,
+                  ),
+                },
+              ),
             ),
           );
         },

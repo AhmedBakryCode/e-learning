@@ -187,27 +187,38 @@ class _CourseHeaderCard extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.xxl),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppRadii.xxl),
-        gradient:
-            LinearProgressIndicator(
-                  value: isEnrolled
-                      ? (state.progress?.completionPercent ?? 0)
-                      : 0,
-                  backgroundColor: Colors.transparent,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    Colors.white.withAlpha(20),
-                  ),
-                ).value ==
-                0
-            ? const LinearGradient(
-                colors: [AppColors.secondary, AppColors.secondarySoft],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+        image: course.imageUrl != null
+            ? DecorationImage(
+                image: NetworkImage(course.imageUrl!),
+                fit: BoxFit.cover,
+                colorFilter: ColorFilter.mode(
+                  Colors.black.withAlpha(150),
+                  BlendMode.darken,
+                ),
               )
-            : const LinearGradient(
-                colors: [AppColors.primary, AppColors.primarySoft],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+            : null,
+        gradient: course.imageUrl == null
+            ? (LinearProgressIndicator(
+                      value: isEnrolled
+                          ? (state.progress?.completionPercent ?? 0)
+                          : 0,
+                      backgroundColor: Colors.transparent,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Colors.white.withAlpha(20),
+                      ),
+                    ).value ==
+                    0
+                ? const LinearGradient(
+                    colors: [AppColors.secondary, AppColors.secondarySoft],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : const LinearGradient(
+                    colors: [AppColors.primary, AppColors.primarySoft],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ))
+            : null,
         boxShadow: AppShadows.elevated,
       ),
       child: Column(

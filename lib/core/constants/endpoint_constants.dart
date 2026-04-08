@@ -30,4 +30,8 @@ class EndpointConstants {
   static const String studentById = '/students/{id}';
   static const String studentCourses = '/students/{id}/courses';
   static const String topStudents = '/students/top';
+
+  // Head
+  static const String head = '/head';
+  static const String headById = '/head/{id}';
 }

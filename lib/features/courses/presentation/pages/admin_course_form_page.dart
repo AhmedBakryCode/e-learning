@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:e_learning/app/theme/app_colors.dart';
 import 'package:e_learning/core/constants/design_tokens.dart';
 import 'package:e_learning/core/constants/view_state_status.dart';
@@ -16,6 +18,7 @@ import 'package:e_learning/core/widgets/status_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 class AdminCourseFormPage extends StatelessWidget {
   const AdminCourseFormPage({super.key, this.courseId});
@@ -45,8 +48,10 @@ class _AdminCourseFormViewState extends State<_AdminCourseFormView> {
   late final TextEditingController _instructorController;
   late final TextEditingController _descriptionController;
   String _level = 'beginner';
-  String _category = 'design';
+  String _category = 'development';
   bool _isPublished = false;
+  File? _imageFile;
+  String? _initialImageUrl;
 
   bool get _isEdit => widget.courseId != null;
 
@@ -67,6 +72,7 @@ class _AdminCourseFormViewState extends State<_AdminCourseFormView> {
     _level = course?.level ?? _level;
     _category = course?.category ?? _category;
     _isPublished = course?.isPublished ?? false;
+    _initialImageUrl = course?.imageUrl;
 
     _titleController.addListener(_refresh);
     _descriptionController.addListener(_refresh);
@@ -280,11 +286,23 @@ class _AdminCourseFormViewState extends State<_AdminCourseFormView> {
             decoration: BoxDecoration(
               color: AppColors.primary.withAlpha(20),
               borderRadius: BorderRadius.circular(AppRadii.xl),
-              image: const DecorationImage(
-                image: AssetImage('assets/images/course_placeholder.png'),
-                fit: BoxFit.cover,
-                scale: 1,
-              ),
+              image: _imageFile != null
+                  ? DecorationImage(
+                      image: FileImage(_imageFile!),
+                      fit: BoxFit.cover,
+                    )
+                  : (_initialImageUrl != null
+                      ? DecorationImage(
+                          image: NetworkImage(_initialImageUrl!),
+                          fit: BoxFit.cover,
+                        )
+                      : const DecorationImage(
+                          image: AssetImage(
+                            'assets/images/course_placeholder.png',
+                          ),
+                          fit: BoxFit.cover,
+                          scale: 1,
+                        )),
             ),
             child: _titleController.text.isEmpty
                 ? const Center(
@@ -332,27 +350,68 @@ class _AdminCourseFormViewState extends State<_AdminCourseFormView> {
   }
 
   Widget _buildImagePlaceholder() {
-    return Container(
-      height: 120,
-      decoration: BoxDecoration(
-        color: AppColors.primary.withAlpha(15),
-        borderRadius: BorderRadius.circular(AppRadii.xl),
-        border: Border.all(color: AppColors.primary.withAlpha(30)),
-      ),
-      child: const Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.add_photo_alternate_outlined, color: AppColors.primary),
-            SizedBox(height: AppSpacing.xs),
-            Text(
-              'Change cover photo',
-              style: TextStyle(color: AppColors.primary, fontSize: 12),
-            ),
-          ],
+    return GestureDetector(
+      onTap: _pickImage,
+      child: Container(
+        height: 160,
+        decoration: BoxDecoration(
+          color: AppColors.primary.withAlpha(15),
+          borderRadius: BorderRadius.circular(AppRadii.xl),
+          border: Border.all(color: AppColors.primary.withAlpha(30)),
+          image: _imageFile != null
+              ? DecorationImage(image: FileImage(_imageFile!), fit: BoxFit.cover)
+              : (_initialImageUrl != null
+                  ? DecorationImage(
+                      image: NetworkImage(_initialImageUrl!),
+                      fit: BoxFit.cover,
+                    )
+                  : null),
         ),
+        child: _imageFile == null && _initialImageUrl == null
+            ? const Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.add_photo_alternate_outlined,
+                      color: AppColors.primary,
+                      size: 32,
+                    ),
+                    SizedBox(height: AppSpacing.sm),
+                    Text(
+                      'Determine the background image of the course',
+                      style: TextStyle(color: AppColors.primary, fontSize: 13),
+                    ),
+                  ],
+                ),
+              )
+            : Align(
+                alignment: Alignment.bottomRight,
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.sm),
+                  child: CircleAvatar(
+                    backgroundColor: Colors.white,
+                    radius: 18,
+                    child: IconButton(
+                      icon: const Icon(Icons.edit, size: 18),
+                      onPressed: _pickImage,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+              ),
       ),
     );
+  }
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      setState(() {
+        _imageFile = File(picked.path);
+      });
+    }
   }
 
   Widget _buildGuidelinesCard() {
@@ -415,6 +474,7 @@ class _AdminCourseFormViewState extends State<_AdminCourseFormView> {
           category: _category,
           level: _level,
           isPublished: _isPublished,
+          imageFile: _imageFile,
         ),
       );
     } else {
@@ -426,6 +486,7 @@ class _AdminCourseFormViewState extends State<_AdminCourseFormView> {
           category: _category,
           level: _level,
           isPublished: _isPublished,
+          imageFile: _imageFile,
         ),
       );
     }

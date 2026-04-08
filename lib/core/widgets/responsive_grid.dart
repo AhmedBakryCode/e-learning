@@ -35,9 +35,9 @@ class ResponsiveGrid extends StatelessWidget {
         double ratio = childAspectRatio ?? 0.8;
         if (childAspectRatio == null) {
           if (crossAxisCount == 1) {
-            ratio = 1.3; // Full-width
-          } else if (crossAxisCount == 2) {
-            ratio = 0.46; // Multi-column (increased height for premium cards)
+            ratio = 0.7; // Very tall for mobile single-column
+          } else if (crossAxisCount >= 2) {
+            ratio = 0.6; // Balanced for multi-column
           }
         }
 

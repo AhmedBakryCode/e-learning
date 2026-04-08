@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:e_learning/core/usecases/usecase.dart';
 import 'package:e_learning/features/courses/domain/entities/course.dart';
 import 'package:e_learning/features/courses/domain/repositories/courses_repository.dart';
@@ -11,6 +13,7 @@ class CreateCourseParams extends Equatable {
     required this.category,
     required this.level,
     required this.isPublished,
+    this.imageFile,
   });
 
   final String title;
@@ -19,6 +22,7 @@ class CreateCourseParams extends Equatable {
   final String category;
   final String level;
   final bool isPublished;
+  final File? imageFile;
 
   @override
   List<Object?> get props => [
@@ -28,6 +32,7 @@ class CreateCourseParams extends Equatable {
     category,
     level,
     isPublished,
+    imageFile,
   ];
 }
 
@@ -45,6 +50,7 @@ class CreateCourseUseCase implements UseCase<Course, CreateCourseParams> {
       category: params.category,
       level: params.level,
       isPublished: params.isPublished,
+      imageFile: params.imageFile,
     );
   }
 }
