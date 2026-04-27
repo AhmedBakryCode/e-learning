@@ -1,3 +1,4 @@
+import 'dart:developer' as dev;
 import 'dart:io';
 
 import 'package:e_learning/app/theme/app_colors.dart';
@@ -205,28 +206,41 @@ class _AdminStudentFormViewState extends State<_AdminStudentFormView> {
           previous.actionStatus != current.actionStatus &&
           current.actionStatus != ViewStateStatus.initial,
       listener: (context, state) {
+        final isLoading = state.actionStatus == ViewStateStatus.loading;
         final isSuccess = state.actionStatus == ViewStateStatus.success;
+        final isFailure = state.actionStatus == ViewStateStatus.failure;
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              state.actionMessage ??
-                  (isSuccess
-                      ? 'The student has been saved successfully.'
-                      : 'This student could not be saved.'),
+        if (isLoading) return;
+
+        if (isFailure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                state.actionMessage ?? 'This student could not be saved.',
+              ),
             ),
-          ),
-        );
-
-        if (isSuccess && state.selectedStudent != null) {
-          context.read<StudentsCubit>().clearActionState();
-          context.pushReplacement(
-            '/admin/students/${state.selectedStudent!.id}',
           );
+          context.read<StudentsCubit>().clearActionState();
           return;
         }
 
-        context.read<StudentsCubit>().clearActionState();
+        if (isSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                state.actionMessage ?? 'The student has been saved successfully.',
+              ),
+            ),
+          );
+          if (state.selectedStudent != null) {
+            context.read<StudentsCubit>().clearActionState();
+            context.pushReplacement(
+              '/admin/students/${state.selectedStudent!.id}',
+            );
+          } else {
+            context.read<StudentsCubit>().clearActionState();
+          }
+        }
       },
       builder: (context, state) {
         final isSaving = state.actionStatus == ViewStateStatus.loading;
@@ -496,6 +510,7 @@ class _AdminStudentFormViewState extends State<_AdminStudentFormView> {
   }
 
   void _submit(BuildContext context) {
+    dev.log('AdminStudentFormPage: _submit called');
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
     final phone = _phoneController.text.trim();

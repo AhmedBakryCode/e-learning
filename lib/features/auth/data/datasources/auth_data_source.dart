@@ -12,6 +12,17 @@ abstract class AuthDataSource {
 
   Future<LoginResponseModel> login(String email, String password);
 
+  Future<LoginResponseModel> register(
+    String name,
+    String email,
+    String password,
+  );
+
+  Future<LoginResponseModel> refreshToken(
+    String accessToken,
+    String refreshToken,
+  );
+
   Future<void> signOut();
 }
 
@@ -37,6 +48,7 @@ class AuthRemoteDataSource implements AuthDataSource {
           ? 'teacher@elevate.academy'
           : 'student@elevate.academy',
       role: role,
+      createdAt: '',
     );
   }
 
@@ -47,10 +59,45 @@ class AuthRemoteDataSource implements AuthDataSource {
       data: {'email': email, 'password': password},
     );
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 || response.statusCode == 201) {
       return LoginResponseModel.fromJson(response.data as Map<String, dynamic>);
     } else {
       throw Exception('Login failed: ${response.statusMessage}');
+    }
+  }
+
+  @override
+  Future<LoginResponseModel> register(
+    String name,
+    String email,
+    String password,
+  ) async {
+    final response = await _apiService.post(
+      EndpointConstants.register,
+      data: {'name': name, 'email': email, 'password': password},
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return LoginResponseModel.fromJson(response.data as Map<String, dynamic>);
+    } else {
+      throw Exception('Registration failed: ${response.statusMessage}');
+    }
+  }
+
+  @override
+  Future<LoginResponseModel> refreshToken(
+    String accessToken,
+    String refreshToken,
+  ) async {
+    final response = await _apiService.post(
+      EndpointConstants.refreshToken,
+      data: {'accessToken': accessToken, 'refreshToken': refreshToken},
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return LoginResponseModel.fromJson(response.data as Map<String, dynamic>);
+    } else {
+      throw Exception('Token refresh failed: ${response.statusMessage}');
     }
   }
 
@@ -80,6 +127,7 @@ class MockAuthDataSource implements AuthDataSource {
           ? 'teacher@elevate.academy'
           : 'student@elevate.academy',
       role: role,
+      createdAt: '',
     );
 
     return _currentUser!;
@@ -92,9 +140,46 @@ class MockAuthDataSource implements AuthDataSource {
       id: 'admin-001',
       name: 'Ava Teacher',
       email: email,
+      createdAt: DateTime.now().toIso8601String(),
       role: UserRole.admin,
     );
-    return LoginResponseModel(token: 'mock-token', user: user);
+    return LoginResponseModel(
+      token: 'mock-token',
+      user: user,
+    );
+  }
+
+  @override
+  Future<LoginResponseModel> register(
+    String name,
+    String email,
+    String password,
+  ) async {
+    await Future<void>.delayed(AppDurations.medium);
+    final user = AppUserModel(
+      id: 'student-001',
+      name: name,
+      email: email,
+      createdAt: DateTime.now().toIso8601String(),
+      role: UserRole.student,
+    );
+    return LoginResponseModel(
+      token: 'mock-token',
+      user: user,
+    );
+  }
+
+  @override
+  Future<LoginResponseModel> refreshToken(
+    String accessToken,
+    String refreshToken,
+  ) async {
+    await Future<void>.delayed(AppDurations.short);
+    if (_currentUser == null) throw Exception('No user to refresh');
+    return LoginResponseModel(
+      token: 'mock-refreshed-token',
+      user: _currentUser!,
+    );
   }
 
   @override

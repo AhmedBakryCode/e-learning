@@ -5,7 +5,8 @@ class EndpointConstants {
   // Auth
   static const String login = '/auth/login';
   static const String register = '/auth/register';
-  static const String profile = '/auth/profile';
+  static const String refreshToken = '/auth/refresh-token';
+  static const String profile = '/auth/me';
 
   // Courses
   static const String courses = '/courses';

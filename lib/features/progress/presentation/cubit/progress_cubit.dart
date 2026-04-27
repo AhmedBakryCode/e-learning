@@ -38,7 +38,9 @@ class ProgressCubit extends Cubit<ProgressState> {
           progressItems: progressItems,
         ),
       );
-    } catch (_) {
+    } catch (e, stackTrace) {
+      print('Error loading progress: $e');
+      print(stackTrace);
       emit(
         state.copyWith(
           status: ViewStateStatus.failure,

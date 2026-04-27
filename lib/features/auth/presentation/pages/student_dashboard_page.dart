@@ -33,7 +33,7 @@ class StudentDashboardPage extends StatelessWidget {
 
     if (student == null || authState.status != AuthStatus.authenticated) {
       return const AdaptiveScaffold(
-        title: 'My Courses',
+        title: 'Dashboard',
         subtitle: 'Preparing your learning space.',
         body: Center(child: CircularProgressIndicator()),
       );
@@ -54,7 +54,7 @@ class StudentDashboardPage extends StatelessWidget {
       child: BlocBuilder<StudentDashboardCubit, StudentDashboardState>(
         builder: (context, state) {
           return AdaptiveScaffold(
-            title: 'My Courses',
+            title: 'Dashboard',
             subtitle:
                 'Track your progress, complete the appropriate lesson, and keep going.',
             selectedIndex: 0,
@@ -180,67 +180,7 @@ class _StudentDashboardContent extends StatelessWidget {
         AppSpacing.huge,
       ),
       children: [
-        // Notifications Section
-        BlocBuilder<NotificationsCubit, NotificationsState>(
-          builder: (context, notificationsState) {
-            if (notificationsState.status == ViewStateStatus.loading ||
-                notificationsState.notifications.isEmpty) {
-              return const SizedBox.shrink();
-            }
-            final recentNotifications = notificationsState.notifications
-                .take(3)
-                .toList();
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: const SectionHeader(
-                        title: 'Recent Notifications',
-                        subtitle: 'Latest updates from your instructors.',
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () => context.push('/student/notifications'),
-                      child: const Text('View all'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.md),
-                ...recentNotifications.map(
-                  (notification) => Card(
-                    margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-                    child: ListTile(
-                      leading: Icon(
-                        notification.isRead
-                            ? Icons.notifications_outlined
-                            : Icons.notifications_active_rounded,
-                        color: notification.isRead ? null : AppColors.secondary,
-                      ),
-                      title: Text(
-                        notification.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      subtitle: Text(
-                        notification.message,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      trailing: Text(
-                        notification.timeLabel,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      onTap: () => context.push('/student/notifications'),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sectionGap),
-              ],
-            );
-          },
-        ),
+
         if (continueCourse != null && continueProgress != null)
           _ContinueLearningCard(
             learnerName: studentName,

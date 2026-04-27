@@ -7,6 +7,8 @@ import 'package:e_learning/features/auth/data/repositories/auth_repository_impl.
 import 'package:e_learning/features/auth/domain/repositories/auth_repository.dart';
 import 'package:e_learning/features/auth/domain/usecases/get_current_user_usecase.dart';
 import 'package:e_learning/features/auth/domain/usecases/login_usecase.dart';
+import 'package:e_learning/features/auth/domain/usecases/register_usecase.dart';
+import 'package:e_learning/features/auth/domain/usecases/refresh_token_usecase.dart';
 import 'package:e_learning/features/auth/domain/usecases/sign_in_as_role_usecase.dart';
 import 'package:e_learning/features/auth/domain/usecases/sign_out_usecase.dart';
 import 'package:e_learning/features/auth/presentation/cubit/auth_cubit.dart';
@@ -65,7 +67,7 @@ import 'package:e_learning/features/profile/domain/repositories/profile_reposito
 import 'package:e_learning/features/profile/domain/usecases/get_profile_usecase.dart';
 import 'package:e_learning/features/profile/domain/usecases/update_profile_usecase.dart';
 import 'package:e_learning/features/profile/presentation/cubit/profile_cubit.dart';
-import 'package:e_learning/features/profile/data/repositories/mock_profile_repository.dart';
+import 'package:e_learning/features/profile/data/repositories/profile_repository_impl.dart';
 import 'package:e_learning/features/head/data/repositories/head_repository_impl.dart';
 import 'package:e_learning/features/head/domain/repositories/head_repository.dart';
 import 'package:e_learning/features/head/domain/usecases/get_head_usecase.dart';
@@ -103,6 +105,8 @@ Future<void> configureDependencies() async {
     )
     ..registerLazySingleton(() => GetCurrentUserUseCase(sl<AuthRepository>()))
     ..registerLazySingleton(() => LoginUseCase(sl<AuthRepository>()))
+    ..registerLazySingleton(() => RegisterUseCase(sl<AuthRepository>()))
+    ..registerLazySingleton(() => RefreshTokenUseCase(sl<AuthRepository>()))
     ..registerLazySingleton(() => SignInAsRoleUseCase(sl<AuthRepository>()))
     ..registerLazySingleton(() => SignOutUseCase(sl<AuthRepository>()))
     ..registerLazySingleton(
@@ -277,7 +281,9 @@ Future<void> configureDependencies() async {
         markNotificationRead: sl<MarkNotificationReadUseCase>(),
       ),
     )
-    ..registerLazySingleton<ProfileRepository>(MockProfileRepository.new)
+    ..registerLazySingleton<ProfileRepository>(
+      () => ProfileRepositoryImpl(sl<ApiService>()),
+    )
     ..registerLazySingleton(() => GetProfileUseCase(sl<ProfileRepository>()))
     ..registerLazySingleton(() => UpdateProfileUseCase(sl<ProfileRepository>()))
     ..registerFactory(

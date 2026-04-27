@@ -20,9 +20,10 @@ class EmptyStateWidget extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.xl),
       child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 420),
-          child: Container(
+        child: SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: Container(
             padding: const EdgeInsets.all(AppSpacing.xxl),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
@@ -73,6 +74,7 @@ class EmptyStateWidget extends StatelessWidget {
               ],
             ),
           ),
+        ),
         ),
       ),
     );

@@ -50,50 +50,52 @@ class AppCard extends StatelessWidget {
         ),
         boxShadow: AppShadows.card,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (hasHeader)
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (leading != null) ...[
-                  leading!,
-                  const SizedBox(width: AppSpacing.md),
-                ],
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (title != null)
-                        Text(
-                          title!,
-                          style: Theme.of(context).textTheme.titleLarge,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      if (subtitle != null) ...[
-                        const SizedBox(height: AppSpacing.xs),
-                        Text(
-                          subtitle!,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (hasHeader)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (leading != null) ...[
+                    leading!,
+                    const SizedBox(width: AppSpacing.md),
+                  ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (title != null)
+                          Text(
+                            title!,
+                            style: Theme.of(context).textTheme.titleLarge,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        if (subtitle != null) ...[
+                          const SizedBox(height: AppSpacing.xs),
+                          Text(
+                            subtitle!,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
-                ),
-                if (trailing != null) ...[
-                  const SizedBox(width: AppSpacing.md),
-                  trailing!,
+                  if (trailing != null) ...[
+                    const SizedBox(width: AppSpacing.md),
+                    trailing!,
+                  ],
                 ],
-              ],
-            ),
-          ...?(child == null
-              ? null
-              : [if (hasHeader) const SizedBox(height: AppSpacing.lg), child!]),
-        ],
+              ),
+            ...?(child == null
+                ? null
+                : [if (hasHeader) const SizedBox(height: AppSpacing.lg), child!]),
+          ],
+        ),
       ),
     );
 

@@ -2,10 +2,8 @@ import 'package:e_learning/app/theme/app_colors.dart';
 import 'package:e_learning/core/constants/design_tokens.dart';
 import 'package:e_learning/core/widgets/app_card.dart';
 import 'package:e_learning/core/widgets/adaptive_scaffold.dart';
-import 'package:e_learning/core/widgets/inline_feedback_card.dart';
 import 'package:e_learning/core/widgets/metric_highlight_card.dart';
 import 'package:e_learning/core/widgets/section_header.dart';
-import 'package:e_learning/core/widgets/status_chip.dart';
 import 'package:e_learning/core/widgets/responsive_grid.dart';
 import 'package:e_learning/core/widgets/home_components.dart';
 import 'package:e_learning/features/auth/presentation/cubit/auth_cubit.dart';
@@ -165,57 +163,6 @@ class _AdminDashboardView extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: AppSpacing.sectionGap),
-            const SectionHeader(
-              title: 'Today',
-              subtitle: 'A clear summary of current tasks and next steps.',
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            const InlineFeedbackCard(
-              title: 'There are two uploads still in process',
-              message:
-                  'Artificial Intelligence Course videos require reviewing data and thumbnails before publishing.',
-              color: AppColors.warning,
-              icon: Icons.warning_amber_rounded,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            AppCard(
-              title: 'Latest activities',
-              subtitle: 'What has been worked on over the past hours?',
-              child: Column(
-                children: [
-                  _TimelineRow(
-                    title: 'Flutter Course has been updated for scalable products',
-                    subtitle: 'Quality review of the draft has been completed',
-                    status: const StatusChip(
-                      label: 'Ready',
-                      color: AppColors.success,
-                      icon: Icons.check_circle_outline_rounded,
-                    ),
-                  ),
-                  const Divider(height: AppSpacing.xxl),
-                  _TimelineRow(
-                    title: 'A student follow-up report has been created',
-                    subtitle: '36 students need communication this week',
-                    status: const StatusChip(
-                      label: 'Important',
-                      color: AppColors.warning,
-                      icon: Icons.flag_outlined,
-                    ),
-                  ),
-                  const Divider(height: AppSpacing.xxl),
-                  _TimelineRow(
-                    title: 'A new announcement has been scheduled',
-                    subtitle: 'The update will reach all students at 09:00',
-                    status: const StatusChip(
-                      label: 'Scheduled',
-                      color: AppColors.secondary,
-                      icon: Icons.schedule_rounded,
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ],
         ),
       ),
@@ -289,35 +236,3 @@ class _QuickActionTile extends StatelessWidget {
   }
 }
 
-class _TimelineRow extends StatelessWidget {
-  const _TimelineRow({
-    required this.title,
-    required this.subtitle,
-    required this.status,
-  });
-
-  final String title;
-  final String subtitle;
-  final Widget status;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: AppSpacing.xs),
-              Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
-            ],
-          ),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        status,
-      ],
-    );
-  }
-}

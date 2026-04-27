@@ -31,24 +31,36 @@ class AdminCourseDetailsPage extends StatelessWidget {
             previous.actionStatus != current.actionStatus &&
             current.actionStatus != ViewStateStatus.initial,
         listener: (context, state) {
+          final isLoading = state.actionStatus == ViewStateStatus.loading;
           final isSuccess = state.actionStatus == ViewStateStatus.success;
+          final isFailure = state.actionStatus == ViewStateStatus.failure;
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                state.actionMessage ??
-                    (isSuccess ? 'The action on the chorus was performed successfully.' : 'The action on the Course failed.'),
+          if (isLoading) return;
+
+          if (isFailure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.actionMessage ?? 'The action on the Course failed.'),
               ),
-            ),
-          );
-
-          if (isSuccess && state.selectedCourse == null) {
+            );
             context.read<CoursesCubit>().clearActionState();
-            context.go('/admin/courses');
             return;
           }
 
-          context.read<CoursesCubit>().clearActionState();
+          if (isSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.actionMessage ?? 'The action on the chorus was performed successfully.'),
+              ),
+            );
+            
+            if (state.selectedCourse == null) {
+              context.read<CoursesCubit>().clearActionState();
+              context.go('/admin/courses');
+            } else {
+              context.read<CoursesCubit>().clearActionState();
+            }
+          }
         },
         builder: (context, state) {
           return AdaptiveScaffold(

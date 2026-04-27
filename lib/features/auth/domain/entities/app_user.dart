@@ -14,13 +14,15 @@ class AppUser extends Equatable {
     required this.name,
     required this.email,
     required this.role,
+    required this.createdAt,
   });
 
   final String id;
   final String name;
   final String email;
   final UserRole role;
+  final String createdAt;
 
   @override
-  List<Object?> get props => [id, name, email, role];
+  List<Object?> get props => [id, name, email, role, createdAt];
 }

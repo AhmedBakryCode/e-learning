@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:e_learning/core/constants/view_state_status.dart';
 import 'package:e_learning/core/usecases/usecase.dart';
 import 'package:e_learning/features/students/domain/entities/student.dart';
@@ -88,6 +89,7 @@ class StudentsCubit extends Cubit<StudentsState> {
   }
 
   Future<void> addStudent(AddStudentParams params) async {
+    log('StudentsCubit: addStudent called with ${params.name}');
     emit(
       state.copyWith(
         actionStatus: ViewStateStatus.loading,
@@ -105,11 +107,12 @@ class StudentsCubit extends Cubit<StudentsState> {
           students: [student, ...state.students],
         ),
       );
-    } catch (_) {
+    } catch (e, stack) {
+      log('Error adding student', error: e, stackTrace: stack);
       emit(
         state.copyWith(
           actionStatus: ViewStateStatus.failure,
-          actionMessage: 'Unable to add this student right now.',
+          actionMessage: 'Unable to add this student right now: $e',
         ),
       );
     }

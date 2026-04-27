@@ -26,6 +26,23 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<LoginResponseModel> register(
+    String name,
+    String email,
+    String password,
+  ) async {
+    return _dataSource.register(name, email, password);
+  }
+
+  @override
+  Future<LoginResponseModel> refreshToken(
+    String accessToken,
+    String refreshToken,
+  ) async {
+    return _dataSource.refreshToken(accessToken, refreshToken);
+  }
+
+  @override
   Future<void> signOut() {
     return _dataSource.signOut();
   }

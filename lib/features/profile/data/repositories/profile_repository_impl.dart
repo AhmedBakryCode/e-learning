@@ -24,34 +24,24 @@ class ProfileRepositoryImpl implements ProfileRepository {
 
   @override
   Future<void> updateProfile(Profile profile, {File? imageFile}) async {
+    final Map<String, dynamic> formMap = {
+      'Name': profile.name,
+      'Email': profile.email,
+      'Bio': profile.bio ?? '',
+      'PhoneNumber': profile.phoneNumber ?? '',
+      if (profile.dateOfBirth != null)
+        'DateOfBirth': profile.dateOfBirth!.toIso8601String(),
+    };
+
     if (imageFile != null) {
-      // Multipart upload with image
-      final formData = FormData.fromMap({
-        'name': profile.name,
-        'email': profile.email,
-        'bio': profile.bio,
-        'phoneNumber': profile.phoneNumber,
-        'dateOfBirth': profile.dateOfBirth?.toIso8601String(),
-        'profileImage': await MultipartFile.fromFile(
-          imageFile.path,
-          filename: imageFile.path.split('/').last,
-        ),
-      });
-      await _apiClient.put(EndpointConstants.profile, data: formData);
-    } else {
-      // JSON update without image
-      final model = ProfileModel(
-        id: profile.id,
-        name: profile.name,
-        email: profile.email,
-        role: profile.role,
-        profileImageUrl: profile.profileImageUrl,
-        bio: profile.bio,
-        phoneNumber: profile.phoneNumber,
-        dateOfBirth: profile.dateOfBirth,
+      formMap['ProfileImage'] = await MultipartFile.fromFile(
+        imageFile.path,
+        filename: imageFile.path.split('/').last,
       );
-      await _apiClient.put(EndpointConstants.profile, data: model.toJson());
     }
+
+    final formData = FormData.fromMap(formMap);
+    await _apiClient.put(EndpointConstants.profile, data: formData);
   }
 
   @override

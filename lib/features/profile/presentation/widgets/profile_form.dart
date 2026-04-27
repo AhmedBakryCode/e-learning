@@ -104,6 +104,7 @@ class _ProfileFormState extends State<ProfileForm> {
         name: updatedProfile.name,
         email: updatedProfile.email,
         role: role,
+        createdAt: currentAuthUser?.createdAt ?? '',
       ),
     );
   }
@@ -117,20 +118,11 @@ class _ProfileFormState extends State<ProfileForm> {
         if (state.status == ProfileStatus.updated) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text(
-                'Profile updated successfully! Please log in again with your updated info.',
-              ),
+              content: Text('Profile updated successfully!'),
               backgroundColor: Colors.green,
               duration: Duration(seconds: 2),
             ),
           );
-          // Wait for snackbar then logout
-          Future.delayed(const Duration(seconds: 2), () {
-            if (context.mounted) {
-              context.read<AuthCubit>().signOut();
-              context.go('/login');
-            }
-          });
         }
       },
       child: BlocBuilder<ProfileCubit, ProfileState>(

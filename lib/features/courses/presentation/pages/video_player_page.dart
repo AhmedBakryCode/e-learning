@@ -16,8 +16,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:video_player/video_player.dart';
+import 'package:media_kit/media_kit.dart';
+import 'package:media_kit_video/media_kit_video.dart';
 import 'package:flutter_windowmanager_plus/flutter_windowmanager_plus.dart';
+import 'package:flutter/services.dart';
 
 class VideoPlayerPage extends StatelessWidget {
   const VideoPlayerPage({
@@ -62,7 +64,8 @@ class _VideoPlayerView extends StatefulWidget {
 }
 
 class _VideoPlayerViewState extends State<_VideoPlayerView> {
-  VideoPlayerController? _controller;
+  Player? _player;
+  VideoController? _controller;
   String? _currentVideoId;
   int _lastSavedSecond = 0;
   bool _isControllerReady = false;
@@ -244,53 +247,13 @@ class _VideoPlayerViewState extends State<_VideoPlayerView> {
     }
 
     return AspectRatio(
-      aspectRatio: _controller!.value.aspectRatio == 0
-          ? 16 / 9
-          : _controller!.value.aspectRatio,
+      aspectRatio: 16 / 9,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(AppRadii.xxl),
         child: Stack(
           alignment: Alignment.bottomCenter,
           children: [
-            VideoPlayer(_controller!),
-            Positioned.fill(
-              child: GestureDetector(
-                onTap: () {
-                  if (_controller!.value.isPlaying) {
-                    _controller!.pause();
-                    _persistPosition(force: true);
-                  } else {
-                    _controller!.play();
-                  }
-                  setState(() {});
-                },
-                child: ColoredBox(
-                  color: Colors.black.withAlpha(30),
-                  child: Center(
-                    child: Container(
-                      width: 76,
-                      height: 76,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withAlpha(40),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        _controller!.value.isPlaying
-                            ? Icons.pause_rounded
-                            : Icons.play_arrow_rounded,
-                        color: Colors.white,
-                        size: 40,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            VideoProgressIndicator(
-              _controller!,
-              allowScrubbing: true,
-              padding: const EdgeInsets.all(AppSpacing.md),
-            ),
+            Video(controller: _controller!),
             _buildWatermark(context),
             _buildSpeedCorner(context),
           ],
@@ -317,10 +280,10 @@ class _VideoPlayerViewState extends State<_VideoPlayerView> {
         child: Material(
           color: Colors.transparent,
           child: PopupMenuButton<double>(
-            initialValue: _controller?.value.playbackSpeed ?? 1.0,
+            initialValue: _player?.state.rate ?? 1.0,
             tooltip: 'Playback speed',
             onSelected: (speed) {
-              _controller?.setPlaybackSpeed(speed);
+              _player?.setRate(speed);
               setState(() {});
             },
             itemBuilder: (context) =>
@@ -333,7 +296,7 @@ class _VideoPlayerViewState extends State<_VideoPlayerView> {
                 vertical: AppSpacing.xs,
               ),
               child: Text(
-                '${_controller?.value.playbackSpeed ?? 1.0}x',
+                '${_player?.state.rate ?? 1.0}x',
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -355,7 +318,7 @@ class _VideoPlayerViewState extends State<_VideoPlayerView> {
   }) async {
     if (!force &&
         _currentVideoId == videoId &&
-        (_controller != null || _controllerError != null)) {
+        (_player != null || _controllerError != null)) {
       return;
     }
 
@@ -370,33 +333,38 @@ class _VideoPlayerViewState extends State<_VideoPlayerView> {
     });
 
     try {
-      final isLocalFile =
-          !kIsWeb &&
-          !videoUrl.startsWith('http') &&
-          !videoUrl.startsWith('assets/') &&
-          File(videoUrl).existsSync();
-      final isAsset = videoUrl.startsWith('assets/');
+      final player = Player();
+      final controller = VideoController(player);
 
-      final VideoPlayerController controller;
-      if (isAsset) {
-        controller = VideoPlayerController.asset(videoUrl);
-      } else if (isLocalFile) {
-        controller = VideoPlayerController.file(File(videoUrl));
-      } else {
-        final uri = Uri.parse(videoUrl);
-        controller = VideoPlayerController.networkUrl(uri);
-      }
+      await player.open(Media(videoUrl), play: false);
 
-      await controller.initialize();
       if (!mounted) {
-        await controller.dispose();
+        await player.dispose();
         return;
       }
+
       if (resumePositionSeconds > 0) {
-        await controller.seekTo(Duration(seconds: resumePositionSeconds));
+        await player.seek(Duration(seconds: resumePositionSeconds));
       }
-      controller.addListener(_onControllerUpdated);
+
+      player.stream.position.listen((position) {
+        if (!mounted) return;
+        final positionSeconds = position.inSeconds;
+        if ((positionSeconds - _lastSavedSecond).abs() >= 5) {
+          _persistPosition();
+        }
+
+        final durationSeconds = player.state.duration.inSeconds;
+        if (!_autoCompletionTriggered &&
+            durationSeconds > 0 &&
+            positionSeconds >= durationSeconds - 1) {
+          _autoCompletionTriggered = true;
+          unawaited(_cubit.markCompleted());
+        }
+      });
+
       setState(() {
+        _player = player;
         _controller = controller;
         _isControllerReady = true;
       });
@@ -410,33 +378,13 @@ class _VideoPlayerViewState extends State<_VideoPlayerView> {
     }
   }
 
-  void _onControllerUpdated() {
-    final controller = _controller;
-    if (controller == null || !controller.value.isInitialized) {
-      return;
-    }
-
-    final positionSeconds = controller.value.position.inSeconds;
-    if ((positionSeconds - _lastSavedSecond).abs() >= 5) {
-      _persistPosition();
-    }
-
-    final durationSeconds = controller.value.duration.inSeconds;
-    if (!_autoCompletionTriggered &&
-        durationSeconds > 0 &&
-        positionSeconds >= durationSeconds - 1) {
-      _autoCompletionTriggered = true;
-      unawaited(_cubit.markCompleted());
-    }
-  }
-
   Future<void> _persistPosition({bool force = false}) async {
-    final controller = _controller;
-    if (controller == null || !controller.value.isInitialized) {
+    final player = _player;
+    if (player == null) {
       return;
     }
 
-    final currentSecond = controller.value.position.inSeconds;
+    final currentSecond = player.state.position.inSeconds;
     if (!force && (currentSecond - _lastSavedSecond).abs() < 5) {
       return;
     }
@@ -446,15 +394,13 @@ class _VideoPlayerViewState extends State<_VideoPlayerView> {
   }
 
   Future<void> _disposeController() async {
-    final controller = _controller;
+    final player = _player;
+    _player = null;
     _controller = null;
     _isControllerReady = false;
-    if (controller == null) {
-      return;
+    if (player != null) {
+      await player.dispose();
     }
-
-    controller.removeListener(_onControllerUpdated);
-    await controller.dispose();
   }
 
   String _formatSeconds(int totalSeconds) {
@@ -826,3 +772,5 @@ class _WatermarkOverlayState extends State<_WatermarkOverlay> {
     );
   }
 }
+
+

@@ -91,13 +91,35 @@ class _AdminCourseFormViewState extends State<_AdminCourseFormView> {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<CoursesCubit, CoursesState>(
+      listenWhen: (previous, current) =>
+          previous.actionStatus != current.actionStatus &&
+          current.actionStatus != ViewStateStatus.initial,
       listener: (context, state) {
-        if (state.actionStatus == ViewStateStatus.success) {
+        final isLoading = state.actionStatus == ViewStateStatus.loading;
+        final isSuccess = state.actionStatus == ViewStateStatus.success;
+        final isFailure = state.actionStatus == ViewStateStatus.failure;
+
+        if (isLoading) return;
+
+        if (isFailure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                state.actionMessage ?? 'Unable to save the course.',
+              ),
+            ),
+          );
+          context.read<CoursesCubit>().clearActionState();
+          return;
+        }
+
+        if (isSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('The Course has been saved successfully.'),
             ),
           );
+          context.read<CoursesCubit>().clearActionState();
           context.pop();
         }
       },

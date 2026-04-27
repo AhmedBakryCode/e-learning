@@ -25,11 +25,17 @@ class StudentsPage extends StatelessWidget {
             previous.actionStatus != current.actionStatus &&
             current.actionStatus != ViewStateStatus.initial,
         listener: (context, state) {
+          final isLoading = state.actionStatus == ViewStateStatus.loading;
+          final isFailure = state.actionStatus == ViewStateStatus.failure;
+          final isSuccess = state.actionStatus == ViewStateStatus.success;
+
+          if (isLoading) return;
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
                 state.actionMessage ??
-                    (state.actionStatus == ViewStateStatus.success
+                    (isSuccess
                         ? 'The procedure was performed on the student successfully.'
                         : 'The action failed on the student.'),
               ),

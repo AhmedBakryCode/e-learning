@@ -126,7 +126,7 @@ class _MobileLayout extends StatelessWidget {
         const SizedBox(height: AppSpacing.lg),
         _VideosList(courseId: courseId, state: state),
         const SizedBox(height: AppSpacing.sectionGap),
-        _ResourcesAndDiscussions(courseId: courseId),
+        //_ResourcesAndDiscussions(courseId: courseId),
       ],
     );
   }
@@ -199,25 +199,25 @@ class _CourseHeaderCard extends StatelessWidget {
             : null,
         gradient: course.imageUrl == null
             ? (LinearProgressIndicator(
-                      value: isEnrolled
-                          ? (state.progress?.completionPercent ?? 0)
-                          : 0,
-                      backgroundColor: Colors.transparent,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        Colors.white.withAlpha(20),
-                      ),
-                    ).value ==
-                    0
-                ? const LinearGradient(
-                    colors: [AppColors.secondary, AppColors.secondarySoft],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  )
-                : const LinearGradient(
-                    colors: [AppColors.primary, AppColors.primarySoft],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ))
+                        value: isEnrolled
+                            ? (state.progress?.completionPercent ?? 0)
+                            : 0,
+                        backgroundColor: Colors.transparent,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Colors.white.withAlpha(20),
+                        ),
+                      ).value ==
+                      0
+                  ? const LinearGradient(
+                      colors: [AppColors.secondary, AppColors.secondarySoft],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                  : const LinearGradient(
+                      colors: [AppColors.primary, AppColors.primarySoft],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ))
             : null,
         boxShadow: AppShadows.elevated,
       ),

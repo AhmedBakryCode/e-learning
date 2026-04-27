@@ -65,26 +65,41 @@ class _StudentDetailsView extends StatelessWidget {
               previous.actionStatus != current.actionStatus &&
               current.actionStatus != ViewStateStatus.initial,
           listener: (context, state) {
+            final isLoading = state.actionStatus == ViewStateStatus.loading;
             final isSuccess = state.actionStatus == ViewStateStatus.success;
+            final isFailure = state.actionStatus == ViewStateStatus.failure;
 
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  state.actionMessage ??
-                      (isSuccess
-                          ? 'The procedure was performed on the student successfully.'
-                          : 'The action failed on the student.'),
+            if (isLoading) return;
+
+            if (isFailure) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    state.actionMessage ?? 'The action failed on the student.',
+                  ),
                 ),
-              ),
-            );
-
-            if (isSuccess && state.selectedStudent == null) {
+              );
               context.read<StudentsCubit>().clearActionState();
-              context.go('/admin/students');
               return;
             }
 
-            context.read<StudentsCubit>().clearActionState();
+            if (isSuccess) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    state.actionMessage ?? 'The procedure was performed on the student successfully.',
+                  ),
+                ),
+              );
+
+              if (state.selectedStudent == null) {
+                context.read<StudentsCubit>().clearActionState();
+                context.go('/admin/students');
+                return;
+              }
+
+              context.read<StudentsCubit>().clearActionState();
+            }
           },
         ),
         BlocListener<ProgressCubit, ProgressState>(

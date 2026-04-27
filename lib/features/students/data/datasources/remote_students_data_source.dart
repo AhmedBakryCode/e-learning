@@ -1,3 +1,5 @@
+import 'dart:developer';
+import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:e_learning/core/constants/endpoint_constants.dart';
 import 'package:e_learning/core/network/api_service.dart';
@@ -49,24 +51,54 @@ class RemoteStudentsDataSource implements StudentsDataSource {
     String? password,
     String? profileImagePath,
   }) async {
-    final formData = FormData.fromMap({
-      'Name': name,
-      'Email': email,
-      if (password != null && password.isNotEmpty) 'Password': password,
-      if (phoneNumber != null && phoneNumber.isNotEmpty)
-        'PhoneNumber': phoneNumber,
-      if (parentPhoneNumber != null && parentPhoneNumber.isNotEmpty)
-        'ParentPhoneNumber': parentPhoneNumber,
-      if (profileImagePath != null && profileImagePath.isNotEmpty)
-        'ProfileImage': await MultipartFile.fromFile(profileImagePath),
-    });
+    try {
+      final formData = FormData.fromMap({
+        'Name': name,
+        'Email': email,
+        if (password != null && password.isNotEmpty) 'Password': password,
+        if (phoneNumber != null && phoneNumber.isNotEmpty)
+          'PhoneNumber': phoneNumber,
+        if (parentPhoneNumber != null && parentPhoneNumber.isNotEmpty)
+          'ParentPhoneNumber': parentPhoneNumber,
+      });
 
-    final response = await _apiService.post<Map<String, dynamic>>(
-      EndpointConstants.students,
-      data: formData,
-    );
+      if (profileImagePath != null &&
+          profileImagePath.isNotEmpty &&
+          !profileImagePath.startsWith('http')) {
+        final file = File(profileImagePath);
+        if (await file.exists()) {
+          formData.files.add(
+            MapEntry(
+              'ProfileImage',
+              await MultipartFile.fromFile(
+                profileImagePath,
+                filename: profileImagePath.split('/').last,
+              ),
+            ),
+          );
+        } else {
+          log('Warning: Profile image file not found at $profileImagePath');
+        }
+      }
 
-    return StudentModel.fromJson(response.data!);
+      log('Adding student to: ${EndpointConstants.students}');
+      log('Data fields: ${formData.fields.map((e) => '${e.key}: ${e.value}')}');
+
+      final response = await _apiService.post<Map<String, dynamic>>(
+        EndpointConstants.students,
+        data: formData,
+      );
+
+      if (response.data == null) {
+        throw Exception('Server returned null data for student creation');
+      }
+
+      return StudentModel.fromJson(response.data!);
+    } catch (e, stack) {
+      log('Error in RemoteStudentsDataSource.addStudent',
+          error: e, stackTrace: stack);
+      rethrow;
+    }
   }
 
   @override
@@ -79,26 +111,47 @@ class RemoteStudentsDataSource implements StudentsDataSource {
     String? password,
     String? profileImagePath,
   }) async {
-    final path = EndpointConstants.studentById.replaceAll('{id}', id);
+    try {
+      final path = EndpointConstants.studentById.replaceAll('{id}', id);
 
-    final formData = FormData.fromMap({
-      if (name.isNotEmpty) 'Name': name,
-      if (email.isNotEmpty) 'Email': email,
-      if (password != null && password.isNotEmpty) 'Password': password,
-      if (phoneNumber != null && phoneNumber.isNotEmpty)
-        'PhoneNumber': phoneNumber,
-      if (parentPhoneNumber != null && parentPhoneNumber.isNotEmpty)
-        'ParentPhoneNumber': parentPhoneNumber,
-      if (profileImagePath != null && profileImagePath.isNotEmpty)
-        'ProfileImage': await MultipartFile.fromFile(profileImagePath),
-    });
+      final formData = FormData.fromMap({
+        if (name.isNotEmpty) 'Name': name,
+        if (email.isNotEmpty) 'Email': email,
+        if (password != null && password.isNotEmpty) 'Password': password,
+        if (phoneNumber != null && phoneNumber.isNotEmpty)
+          'PhoneNumber': phoneNumber,
+        if (parentPhoneNumber != null && parentPhoneNumber.isNotEmpty)
+          'ParentPhoneNumber': parentPhoneNumber,
+      });
 
-    final response = await _apiService.put<Map<String, dynamic>>(
-      path,
-      data: formData,
-    );
+      if (profileImagePath != null &&
+          profileImagePath.isNotEmpty &&
+          !profileImagePath.startsWith('http')) {
+        final file = File(profileImagePath);
+        if (await file.exists()) {
+          formData.files.add(
+            MapEntry(
+              'ProfileImage',
+              await MultipartFile.fromFile(
+                profileImagePath,
+                filename: profileImagePath.split('/').last,
+              ),
+            ),
+          );
+        }
+      }
 
-    return StudentModel.fromJson(response.data!);
+      final response = await _apiService.put<Map<String, dynamic>>(
+        path,
+        data: formData,
+      );
+
+      return StudentModel.fromJson(response.data!);
+    } catch (e, stack) {
+      log('Error in RemoteStudentsDataSource.updateStudent',
+          error: e, stackTrace: stack);
+      rethrow;
+    }
   }
 
   @override

@@ -6,6 +6,7 @@ class AppUserModel extends AppUser {
     required super.name,
     required super.email,
     required super.role,
+    required super.createdAt,
   });
 
   factory AppUserModel.fromJson(Map<String, dynamic> json) {
@@ -16,10 +17,17 @@ class AppUserModel extends AppUser {
       role: (json['role'] as String) == 'admin'
           ? UserRole.admin
           : UserRole.student,
+      createdAt: json['createdAt'] as String? ?? '',
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {'id': id, 'name': name, 'email': email, 'role': role.name};
+    return {
+      'id': id, 
+      'name': name, 
+      'email': email, 
+      'role': role.name,
+      'createdAt': createdAt,
+    };
   }
 }

@@ -79,19 +79,23 @@ class VideoSessionCubit extends Cubit<VideoSessionState> {
       return;
     }
 
-    final updated = await _saveVideoProgress(
-      SaveVideoProgressParams(
-        studentId: _studentId,
-        courseId: _courseId,
-        videoId: state.currentVideo!.id,
-        watchedSeconds: watchedSeconds,
-      ),
-    );
-    _emitUpdatedProgress(
-      updated,
-      actionMessage: null,
-      actionStatus: ViewStateStatus.initial,
-    );
+    try {
+      final updated = await _saveVideoProgress(
+        SaveVideoProgressParams(
+          studentId: _studentId,
+          courseId: _courseId,
+          videoId: state.currentVideo!.id,
+          watchedSeconds: watchedSeconds,
+        ),
+      );
+      _emitUpdatedProgress(
+        updated,
+        actionMessage: null,
+        actionStatus: ViewStateStatus.initial,
+      );
+    } catch (e) {
+      // Ignore background save errors, or log them
+    }
   }
 
   Future<void> markCompleted() async {
