@@ -246,6 +246,10 @@ class CoursesCubit extends Cubit<CoursesState> {
     emit(state.copyWith(selectedCategory: category));
   }
 
+  void searchCourses(String query) {
+    emit(state.copyWith(searchQuery: query));
+  }
+
   void clearActionState() {
     emit(
       state.copyWith(

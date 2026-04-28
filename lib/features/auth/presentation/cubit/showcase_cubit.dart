@@ -56,6 +56,8 @@ class ShowcaseCubit extends Cubit<ShowcaseState> {
       }(),
     ]);
 
+    if (isClosed) return;
+
     // If both failed, then it's a failure status
     if (fetchedHeads == null && fetchedStudents == null) {
       emit(state.copyWith(

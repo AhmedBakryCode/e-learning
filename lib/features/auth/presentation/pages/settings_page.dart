@@ -98,9 +98,9 @@ class _SettingsViewState extends State<_SettingsView> {
         ),
         const SizedBox(height: AppSpacing.sectionGap),
         const SectionHeader(
-          title: 'Preferences',
-          subtitle:
-              'Settings to control the appearance and notifications of the application.',
+          title: 'Profile settings',
+          // subtitle:
+          //     'Settings to control the appearance and notifications of the application.',
         ),
         const SizedBox(height: AppSpacing.lg),
         AppCard(
@@ -121,48 +121,48 @@ class _SettingsViewState extends State<_SettingsView> {
                 ),
               ),
               const Divider(height: AppSpacing.xxl),
-              _SettingRow(
-                icon: Icons.notifications_active_outlined,
-                title: 'Phone notifications',
-                subtitle: 'Lesson reminders and Course updates',
-                trailing: Switch.adaptive(
-                  value: true,
-                  onChanged: (val) {
-                    // Implement notification toggle logic
-                  },
-                ),
-              ),
-              const Divider(height: AppSpacing.xxl),
-              _SettingRow(
-                icon: Icons.dark_mode_outlined,
-                title: 'Dark mode',
-                subtitle: isDarkMode ? 'Activated' : 'Not activated',
-                trailing: Switch.adaptive(
-                  value: isDarkMode,
-                  onChanged: (val) =>
-                      context.read<ThemeCubit>().toggleDarkMode(val),
-                ),
-              ),
-              const Divider(height: AppSpacing.xxl),
-              _SettingRow(
-                icon: Icons.phone_android_rounded,
-                title: 'Matching phone settings',
-                subtitle: 'Use system settings for colors and appearance',
-                trailing: TextButton(
-                  onPressed: () => context.read<ThemeCubit>().useSystemMode(),
-                  child: const Text('Activate'),
-                ),
-              ),
-              const Divider(height: AppSpacing.xxl),
-              const _SettingRow(
-                icon: Icons.language_rounded,
-                title: 'Language',
-                subtitle: 'Arabic',
-                trailing: Text(
-                  'Activated',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
+              // _SettingRow(
+              //   icon: Icons.notifications_active_outlined,
+              //   title: 'Phone notifications',
+              //   subtitle: 'Lesson reminders and Course updates',
+              //   trailing: Switch.adaptive(
+              //     value: true,
+              //     onChanged: (val) {
+              //       // Implement notification toggle logic
+              //     },
+              //   ),
+              // ),
+              // const Divider(height: AppSpacing.xxl),
+              // _SettingRow(
+              //   icon: Icons.dark_mode_outlined,
+              //   title: 'Dark mode',
+              //   subtitle: isDarkMode ? 'Activated' : 'Not activated',
+              //   trailing: Switch.adaptive(
+              //     value: isDarkMode,
+              //     onChanged: (val) =>
+              //         context.read<ThemeCubit>().toggleDarkMode(val),
+              //   ),
+              // ),
+              // const Divider(height: AppSpacing.xxl),
+              //  _SettingRow(
+              //   icon: Icons.phone_android_rounded,
+              //   title: 'Matching phone settings',
+              //   subtitle: 'Use system settings for colors and appearance',
+              //   trailing: TextButton(
+              //     onPressed: () => context.read<ThemeCubit>().useSystemMode(),
+              //     child: const Text('Activate'),
+              //   ),
+              // ),
+              // const Divider(height: AppSpacing.xxl),
+              // const _SettingRow(
+              //   icon: Icons.language_rounded,
+              //   title: 'Language',
+              //   subtitle: 'Arabic',
+              //   trailing: Text(
+              //     'Activated',
+              //     style: TextStyle(fontWeight: FontWeight.bold),
+              //   ),
+              //),
               if (user?.role == UserRole.admin) ...[
                 const Divider(height: AppSpacing.xxl),
                 const _HeadsManagementTile(),
@@ -379,15 +379,11 @@ class _HeadsManagementTile extends StatelessWidget {
             size: 20,
           ),
         ),
-        title: Text(
-          'Heads',
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
+        title: Text('Heads', style: Theme.of(context).textTheme.titleMedium),
         subtitle: Text(
           'Manage app carousel heads',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color:
-                Theme.of(context).textTheme.bodySmall?.color?.withAlpha(180),
+            color: Theme.of(context).textTheme.bodySmall?.color?.withAlpha(180),
           ),
         ),
         trailing: Row(
@@ -401,11 +397,10 @@ class _HeadsManagementTile extends StatelessWidget {
               onPressed: () {
                 showDialog(
                   context: context,
-                  builder:
-                      (_) => BlocProvider.value(
-                        value: context.read<HeadCubit>(),
-                        child: const EditHeadDialog(),
-                      ),
+                  builder: (_) => BlocProvider.value(
+                    value: context.read<HeadCubit>(),
+                    child: const EditHeadDialog(),
+                  ),
                 );
               },
             ),
@@ -433,61 +428,59 @@ class _HeadsManagementTile extends StatelessWidget {
                 }
 
                 return Column(
-                  children:
-                      state.heads.map((head) {
-                        return Padding(
-                          padding: const EdgeInsets.only(
-                            left: AppSpacing.huge,
-                            bottom: AppSpacing.sm,
+                  children: state.heads.map((head) {
+                    return Padding(
+                      padding: const EdgeInsets.only(
+                        left: AppSpacing.huge,
+                        bottom: AppSpacing.sm,
+                      ),
+                      child: ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: CircleAvatar(
+                          radius: 20,
+                          backgroundImage: NetworkImage(head.imageUrl),
+                        ),
+                        title: Text(
+                          head.name,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
                           ),
-                          child: ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: CircleAvatar(
-                              radius: 20,
-                              backgroundImage: NetworkImage(head.imageUrl),
-                            ),
-                            title: Text(
-                              head.name,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                            subtitle: Text(
-                              head.title,
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.edit_outlined, size: 18),
-                                  onPressed: () {
-                                    showDialog(
-                                      context: context,
-                                      builder:
-                                          (_) => BlocProvider.value(
-                                            value: context.read<HeadCubit>(),
-                                            child: EditHeadDialog(head: head),
-                                          ),
-                                    );
-                                  },
-                                ),
-                                IconButton(
-                                  icon: Icon(
-                                    Icons.delete_outline_rounded,
-                                    size: 18,
-                                    color: Theme.of(context).colorScheme.error,
+                        ),
+                        subtitle: Text(
+                          head.title,
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit_outlined, size: 18),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => BlocProvider.value(
+                                    value: context.read<HeadCubit>(),
+                                    child: EditHeadDialog(head: head),
                                   ),
-                                  onPressed: () {
-                                    _showDeleteConfirm(context, head);
-                                  },
-                                ),
-                              ],
+                                );
+                              },
                             ),
-                          ),
-                        );
-                      }).toList(),
+                            IconButton(
+                              icon: Icon(
+                                Icons.delete_outline_rounded,
+                                size: 18,
+                                color: Theme.of(context).colorScheme.error,
+                              ),
+                              onPressed: () {
+                                _showDeleteConfirm(context, head);
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
                 );
               }
 
@@ -496,7 +489,9 @@ class _HeadsManagementTile extends StatelessWidget {
                   padding: const EdgeInsets.all(AppSpacing.md),
                   child: Text(
                     'Error: ${state.message}',
-                    style: TextStyle(color: Theme.of(context).colorScheme.error),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
                   ),
                 );
               }
@@ -512,28 +507,27 @@ class _HeadsManagementTile extends StatelessWidget {
   void _showDeleteConfirm(BuildContext context, Head head) {
     showDialog(
       context: context,
-      builder:
-          (dialogContext) => AlertDialog(
-            title: const Text('Delete Head'),
-            content: Text('Are you sure you want to delete "${head.name}"?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Cancel'),
-              ),
-              FilledButton(
-                onPressed: () {
-                  context.read<HeadCubit>().deleteHead(head.id);
-                  Navigator.pop(dialogContext);
-                },
-                style: FilledButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.error,
-                  foregroundColor: Theme.of(context).colorScheme.onError,
-                ),
-                child: const Text('Delete'),
-              ),
-            ],
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete Head'),
+        content: Text('Are you sure you want to delete "${head.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
           ),
+          FilledButton(
+            onPressed: () {
+              context.read<HeadCubit>().deleteHead(head.id);
+              Navigator.pop(dialogContext);
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
     );
   }
 }

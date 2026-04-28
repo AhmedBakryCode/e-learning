@@ -23,23 +23,23 @@ class AppTheme {
         ),
   );
 
-  static ThemeData get darkTheme => _buildTheme(
-    brightness: Brightness.dark,
-    scheme:
-        ColorScheme.fromSeed(
-          seedColor: const Color(0xFF9CB3FF),
-          brightness: Brightness.dark,
-        ).copyWith(
-          primary: const Color(0xFF9CB3FF),
-          onPrimary: AppColors.primary,
-          secondary: const Color(0xFF8AB4FF),
-          onSecondary: AppColors.primary,
-          error: const Color(0xFFF97066),
-          onError: AppColors.primary,
-          surface: AppColors.darkSurface,
-          onSurface: const Color(0xFFF8FAFC),
-        ),
-  );
+  // static ThemeData get darkTheme => _buildTheme(
+  //   brightness: Brightness.dark,
+  //   scheme:
+  //       ColorScheme.fromSeed(
+  //         seedColor: const Color(0xFF9CB3FF),
+  //         brightness: Brightness.dark,
+  //       ).copyWith(
+  //         primary: const Color(0xFF9CB3FF),
+  //         onPrimary: AppColors.primary,
+  //         secondary: const Color(0xFF8AB4FF),
+  //         onSecondary: AppColors.primary,
+  //         error: const Color(0xFFF97066),
+  //         onError: AppColors.primary,
+  //         surface: AppColors.darkSurface,
+  //         onSurface: const Color(0xFFF8FAFC),
+  //       ),
+  // );
 
   static ThemeData _buildTheme({
     required Brightness brightness,

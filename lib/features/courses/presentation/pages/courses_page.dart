@@ -172,7 +172,9 @@ class _CoursesLoaded extends StatelessWidget {
   Widget build(BuildContext context) {
     return RefreshIndicator(
       onRefresh: () async {
-        final futures = <Future>[context.read<CoursesCubit>().loadCourses(role)];
+        final futures = <Future>[
+          context.read<CoursesCubit>().loadCourses(role),
+        ];
         if (role == UserRole.student) {
           final user = context.read<AuthCubit>().state.user;
           futures.add(
@@ -190,42 +192,43 @@ class _CoursesLoaded extends StatelessWidget {
         ),
         children: [
           if (role == UserRole.admin) ...[
-            const InlineFeedbackCard(
-              title: 'The permissions system has been updated',
-              message:
-                  'You can now drag Courses to rearrange them or tap and hold to quickly change their publishing status.',
-              color: AppColors.secondary,
-              icon: Icons.info_outline_rounded,
-            ),
+            // const InlineFeedbackCard(
+            //   title: 'The permissions system has been updated',
+            //   message:
+            //       'You can now drag Courses to rearrange them or tap and hold to quickly change their publishing status.',
+            //   color: AppColors.secondary,
+            //   icon: Icons.info_outline_rounded,
+            // ),
             const SizedBox(height: AppSpacing.sectionGap),
-            Row(
-              children: const [
-                Expanded(
-                  child: MetricHighlightCard(
-                    title: 'Active Courses',
-                    value: '24',
-                    subtitle: '+3 this month',
-                    icon: Icons.auto_awesome_rounded,
-                    color: AppColors.primary,
-                  ),
-                ),
-                SizedBox(width: AppSpacing.lg),
-                Expanded(
-                  child: MetricHighlightCard(
-                    title: 'Total students',
-                    value: '1.2k',
-                    subtitle: '+12%',
-                    icon: Icons.moving_rounded,
-                    color: AppColors.success,
-                  ),
-                ),
-              ],
-            ),
+            // Row(
+            //   children: const [
+            //     Expanded(
+            //       child: MetricHighlightCard(
+            //         title: 'Active Courses',
+            //         value: '24',
+            //         subtitle: '+3 this month',
+            //         icon: Icons.auto_awesome_rounded,
+            //         color: AppColors.primary,
+            //       ),
+            //     ),
+            //     SizedBox(width: AppSpacing.lg),
+            //     Expanded(
+            //       child: MetricHighlightCard(
+            //         title: 'Total students',
+            //         value: '1.2k',
+            //         subtitle: '+12%',
+            //         icon: Icons.moving_rounded,
+            //         color: AppColors.success,
+            //       ),
+            //     ),
+            //   ],
+            // ),
             const SizedBox(height: AppSpacing.sectionGap),
           ],
-          const CustomTextField(
-            prefixIcon: Icon(Icons.search_rounded),
+          CustomTextField(
+            prefixIcon: const Icon(Icons.search_rounded),
             hintText: 'Search for a Course, teacher, or category...',
+            onChanged: (query) => context.read<CoursesCubit>().searchCourses(query),
           ),
           const SizedBox(height: AppSpacing.sectionGap),
           if (role == UserRole.admin) ...[

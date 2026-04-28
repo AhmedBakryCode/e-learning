@@ -11,6 +11,7 @@ class CoursesState extends Equatable {
     this.featuredCourses = const [],
     this.courseVideos = const [],
     this.selectedCategory = 'All',
+    this.searchQuery = '',
     this.selectedCourse,
     this.errorMessage,
     this.actionMessage,
@@ -22,6 +23,7 @@ class CoursesState extends Equatable {
   final List<Course> featuredCourses;
   final List<CourseVideo> courseVideos;
   final String selectedCategory;
+  final String searchQuery;
   final Course? selectedCourse;
   final String? errorMessage;
   final String? actionMessage;
@@ -33,13 +35,22 @@ class CoursesState extends Equatable {
   }
 
   List<Course> get filteredCourses {
-    if (selectedCategory == 'All') {
-      return courses;
+    var result = courses;
+    
+    if (selectedCategory != 'All') {
+      result = result.where((course) => course.category == selectedCategory).toList();
     }
 
-    return courses
-        .where((course) => course.category == selectedCategory)
-        .toList();
+    if (searchQuery.isNotEmpty) {
+      final query = searchQuery.toLowerCase();
+      result = result.where((course) => 
+        course.title.toLowerCase().contains(query) ||
+        course.category.toLowerCase().contains(query) ||
+        course.instructorName.toLowerCase().contains(query)
+      ).toList();
+    }
+
+    return result;
   }
 
   CoursesState copyWith({
@@ -49,6 +60,7 @@ class CoursesState extends Equatable {
     List<Course>? featuredCourses,
     List<CourseVideo>? courseVideos,
     String? selectedCategory,
+    String? searchQuery,
     Course? selectedCourse,
     String? errorMessage,
     String? actionMessage,
@@ -63,6 +75,7 @@ class CoursesState extends Equatable {
       featuredCourses: featuredCourses ?? this.featuredCourses,
       courseVideos: courseVideos ?? this.courseVideos,
       selectedCategory: selectedCategory ?? this.selectedCategory,
+      searchQuery: searchQuery ?? this.searchQuery,
       selectedCourse: clearSelectedCourse
           ? null
           : selectedCourse ?? this.selectedCourse,
@@ -83,6 +96,7 @@ class CoursesState extends Equatable {
     featuredCourses,
     courseVideos,
     selectedCategory,
+    searchQuery,
     selectedCourse,
     errorMessage,
     actionMessage,

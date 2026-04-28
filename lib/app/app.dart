@@ -37,10 +37,10 @@ class _ELearningAppState extends State<ELearningApp> {
       child: BlocBuilder<ThemeCubit, ThemeMode>(
         builder: (context, themeMode) {
           return MaterialApp.router(
-            title: 'Nova C',
+            title: 'Nova',
             debugShowCheckedModeBanner: false,
             theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
+            //  darkTheme: AppTheme.darkTheme,
             themeMode: themeMode,
             locale: const Locale('en'),
             supportedLocales: const [Locale('en')],

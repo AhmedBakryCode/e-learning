@@ -71,8 +71,8 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                   gradient: const LinearGradient(
                                     colors: [
-                                      AppColors.primary,
-                                      AppColors.primarySoft,
+                                      AppColors.success,
+                                      AppColors.cardStroke,
                                     ],
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
@@ -191,7 +191,7 @@ class _LoginPageState extends State<LoginPage> {
                                                 }
                                               },
                                         style: ElevatedButton.styleFrom(
-                                          backgroundColor: AppColors.muted,
+                                          backgroundColor: AppColors.primary,
                                           foregroundColor: Colors.white,
                                           padding: const EdgeInsets.symmetric(
                                             vertical: AppSpacing.lg,

@@ -34,7 +34,7 @@ class StudentCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppRadii.xl),
           gradient: isPremium
               ? const LinearGradient(
-                  colors: [Color(0xFF1E293B), Color(0xFF334155)],
+                  colors: [Color(0xFF10B981), Colors.white],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 )
@@ -44,7 +44,9 @@ class StudentCard extends StatelessWidget {
           border: isPremium
               ? null
               : Border.all(
-                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.outline.withValues(alpha: 0.1),
                 ),
         ),
         child: Column(
@@ -56,28 +58,33 @@ class StudentCard extends StatelessWidget {
                   radius: 20,
                   backgroundColor: isPremium
                       ? Colors.white.withValues(alpha: 0.1)
-                      : Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                      : Theme.of(
+                          context,
+                        ).colorScheme.primary.withValues(alpha: 0.1),
                   backgroundImage: student.profileImagePath != null
                       ? (kIsWeb
-                          ? NetworkImage(student.profileImagePath!) as ImageProvider
-                          : FileImage(File(student.profileImagePath!)))
+                            ? NetworkImage(student.profileImagePath!)
+                                  as ImageProvider
+                            : FileImage(File(student.profileImagePath!)))
                       : null,
                   child: student.profileImagePath == null
                       ? Text(
                           student.name[0],
                           style: TextStyle(
-                            color: isPremium ? Colors.white : Theme.of(context).colorScheme.primary,
+                            color: isPremium
+                                ? Colors.black
+                                : Theme.of(context).colorScheme.primary,
                             fontWeight: FontWeight.bold,
                           ),
                         )
                       : null,
                 ),
                 const Spacer(),
-                if (trailing != null) 
+                if (trailing != null)
                   Theme(
                     data: Theme.of(context).copyWith(
                       iconTheme: IconThemeData(
-                        color: isPremium ? Colors.white : null,
+                        color: isPremium ? Colors.black : null,
                       ),
                     ),
                     child: trailing!,
@@ -87,20 +94,22 @@ class StudentCard extends StatelessWidget {
             SizedBox(height: isPremium ? AppSpacing.sm : AppSpacing.md),
             Text(
               student.name,
-              style: (isPremium 
-                ? Theme.of(context).textTheme.titleSmall
-                : Theme.of(context).textTheme.titleMedium)?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: isPremium ? Colors.white : null,
-                  ),
+              style:
+                  (isPremium
+                          ? Theme.of(context).textTheme.titleSmall
+                          : Theme.of(context).textTheme.titleMedium)
+                      ?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: isPremium ? Colors.black : null,
+                      ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
             Text(
               student.email,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: isPremium ? Colors.white.withValues(alpha: 0.7) : null,
-                  ),
+                color: isPremium ? Colors.black.withValues(alpha: 0.7) : null,
+              ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -111,7 +120,7 @@ class StudentCard extends StatelessWidget {
               children: [
                 _StatusPill(
                   label: '${student.activeCourses} Courses',
-                  color: const Color(0xFF3B82F6),
+                  color: Colors.black,
                   isPremium: isPremium,
                 ),
                 _StatusPill(
@@ -128,8 +137,10 @@ class StudentCard extends StatelessWidget {
                 value: student.completionRate,
                 minHeight: 6,
                 backgroundColor: isPremium
-                    ? Colors.white.withValues(alpha: 0.1)
-                    : Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+                    ? Colors.black.withValues(alpha: 0.1)
+                    : Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.08),
                 valueColor: isPremium
                     ? const AlwaysStoppedAnimation(Colors.white)
                     : null,
@@ -162,17 +173,17 @@ class _StatusPill extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: isPremium
-            ? Colors.white.withValues(alpha: 0.1)
+            ? Colors.black.withValues(alpha: 0.1)
             : color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppRadii.pill),
       ),
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: isPremium ? Colors.white : color,
-              fontWeight: FontWeight.bold,
-              fontSize: 10,
-            ),
+          color: isPremium ? Colors.black : color,
+          fontWeight: FontWeight.bold,
+          fontSize: 10,
+        ),
       ),
     );
   }

@@ -78,47 +78,47 @@ class _AdminDashboardView extends StatelessWidget {
           children: [
             const HomeShowcasePageView(),
             const SizedBox(height: AppSpacing.sectionGap),
-            const SectionHeader(
-              title: 'Platform summary',
-              subtitle: 'Follow the most important indicators before getting into the details.',
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            const ResponsiveGrid(
-              mobileCrossAxisCount: 2,
-              tabletCrossAxisCount: 2,
-              desktopCrossAxisCount: 4,
-              children: [
-                MetricHighlightCard(
-                  title: 'Active Courses',
-                  value: '18',
-                  subtitle: '6 needs review',
-                  icon: Icons.menu_book_rounded,
-                  color: AppColors.secondary,
-                ),
-                MetricHighlightCard(
-                  title: 'Monthly revenue',
-                  value: '\$42K',
-                  subtitle: '12% higher than target',
-                  icon: Icons.trending_up_rounded,
-                  color: AppColors.success,
-                ),
-                MetricHighlightCard(
-                  title: 'Students need follow-up',
-                  value: '36',
-                  subtitle: 'They need communication',
-                  icon: Icons.warning_amber_rounded,
-                  color: AppColors.warning,
-                ),
-                MetricHighlightCard(
-                  title: 'Unread reports',
-                  value: '09',
-                  subtitle: 'Comments and reviews',
-                  icon: Icons.mark_chat_unread_rounded,
-                  color: AppColors.primary,
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sectionGap),
+            // const SectionHeader(
+            //   title: 'Platform summary',
+            //   subtitle: 'Follow the most important indicators before getting into the details.',
+            // ),
+            // const SizedBox(height: AppSpacing.lg),
+            // const ResponsiveGrid(
+            //   mobileCrossAxisCount: 2,
+            //   tabletCrossAxisCount: 2,
+            //   desktopCrossAxisCount: 4,
+            //   children: [
+            //     MetricHighlightCard(
+            //       title: 'Active Courses',
+            //       value: '18',
+            //       subtitle: '6 needs review',
+            //       icon: Icons.menu_book_rounded,
+            //       color: AppColors.secondary,
+            //     ),
+            //     MetricHighlightCard(
+            //       title: 'Monthly revenue',
+            //       value: '\$42K',
+            //       subtitle: '12% higher than target',
+            //       icon: Icons.trending_up_rounded,
+            //       color: AppColors.success,
+            //     ),
+            //     MetricHighlightCard(
+            //       title: 'Students need follow-up',
+            //       value: '36',
+            //       subtitle: 'They need communication',
+            //       icon: Icons.warning_amber_rounded,
+            //       color: AppColors.warning,
+            //     ),
+            //     MetricHighlightCard(
+            //       title: 'Unread reports',
+            //       value: '09',
+            //       subtitle: 'Comments and reviews',
+            //       icon: Icons.mark_chat_unread_rounded,
+            //       color: AppColors.primary,
+            //     ),
+            //   ],
+            // ),
+            // const SizedBox(height: AppSpacing.sectionGap),
             SectionHeader(
               title: 'Fast actions',
               subtitle: 'Go directly to the most frequently used tasks.',
@@ -136,7 +136,8 @@ class _AdminDashboardView extends StatelessWidget {
                 _QuickActionTile(
                   icon: Icons.menu_book_rounded,
                   title: 'Course management',
-                  description: 'Organize drafts, published content, and uploads.',
+                  description:
+                      'Organize drafts, published content, and uploads.',
                   color: AppColors.secondary,
                   onTap: () => context.go('/admin/courses'),
                 ),
@@ -150,7 +151,8 @@ class _AdminDashboardView extends StatelessWidget {
                 _QuickActionTile(
                   icon: Icons.campaign_rounded,
                   title: 'Send notification',
-                  description: 'Send alerts, reminders, and updates to all students.',
+                  description:
+                      'Send alerts, reminders, and updates to all students.',
                   color: AppColors.warning,
                   onTap: () => context.go('/admin/notifications/send'),
                 ),
@@ -185,10 +187,7 @@ class _AdminDashboardView extends StatelessWidget {
         break;
     }
   }
-
 }
-
-
 
 class _QuickActionTile extends StatelessWidget {
   const _QuickActionTile({
@@ -235,4 +234,3 @@ class _QuickActionTile extends StatelessWidget {
     );
   }
 }
-
