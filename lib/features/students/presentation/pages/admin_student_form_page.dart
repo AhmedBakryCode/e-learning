@@ -20,24 +20,28 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'package:e_learning/features/students/domain/entities/student.dart';
+
 class AdminStudentFormPage extends StatelessWidget {
-  const AdminStudentFormPage({super.key, this.studentId});
+  const AdminStudentFormPage({super.key, this.studentId, this.student});
 
   final String? studentId;
+  final Student? student;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => sl<StudentsCubit>(),
-      child: _AdminStudentFormView(studentId: studentId),
+      child: _AdminStudentFormView(studentId: studentId, student: student),
     );
   }
 }
 
 class _AdminStudentFormView extends StatefulWidget {
-  const _AdminStudentFormView({required this.studentId});
+  const _AdminStudentFormView({required this.studentId, this.student});
 
   final String? studentId;
+  final Student? student;
 
   @override
   State<_AdminStudentFormView> createState() => _AdminStudentFormViewState();
@@ -54,13 +58,12 @@ class _AdminStudentFormViewState extends State<_AdminStudentFormView> {
   final ImagePicker _imagePicker = ImagePicker();
 
   bool get _isEdit => widget.studentId != null;
+  bool _isDataLoaded = false;
 
   @override
   void initState() {
     super.initState();
-    final student = widget.studentId == null
-        ? null
-        : MockStudentsDataSource.findStudent(widget.studentId!);
+    final student = widget.student;
 
     _nameController = TextEditingController(text: student?.name ?? '');
     _emailController = TextEditingController(text: student?.email ?? '');
@@ -69,7 +72,15 @@ class _AdminStudentFormViewState extends State<_AdminStudentFormView> {
       text: student?.parentPhoneNumber ?? '',
     );
     _passwordController = TextEditingController(text: student?.password ?? '');
-    _selectedImagePath = student?.profileImagePath;
+    _selectedImagePath = student?.profileImageUrl ?? student?.profileImagePath;
+
+    if (widget.studentId != null && student == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<StudentsCubit>().loadStudentDetails(widget.studentId!);
+      });
+    } else {
+      _isDataLoaded = true;
+    }
   }
 
   @override
@@ -203,9 +214,26 @@ class _AdminStudentFormViewState extends State<_AdminStudentFormView> {
   Widget build(BuildContext context) {
     return BlocConsumer<StudentsCubit, StudentsState>(
       listenWhen: (previous, current) =>
-          previous.actionStatus != current.actionStatus &&
-          current.actionStatus != ViewStateStatus.initial,
+          (previous.actionStatus != current.actionStatus &&
+              current.actionStatus != ViewStateStatus.initial) ||
+          (previous.status != current.status &&
+              current.status == ViewStateStatus.success),
       listener: (context, state) {
+        if (!_isDataLoaded &&
+            state.status == ViewStateStatus.success &&
+            state.selectedStudent != null) {
+          final student = state.selectedStudent!;
+          _nameController.text = student.name;
+          _emailController.text = student.email;
+          _phoneController.text = student.phoneNumber ?? '';
+          _parentPhoneController.text = student.parentPhoneNumber ?? '';
+          _passwordController.text = student.password ?? '';
+          setState(() {
+            _selectedImagePath = student.profileImageUrl ?? student.profileImagePath;
+            _isDataLoaded = true;
+          });
+        }
+
         final isLoading = state.actionStatus == ViewStateStatus.loading;
         final isSuccess = state.actionStatus == ViewStateStatus.success;
         final isFailure = state.actionStatus == ViewStateStatus.failure;
@@ -251,8 +279,10 @@ class _AdminStudentFormViewState extends State<_AdminStudentFormView> {
           selectedIndex: 2,
           onNavigationChanged: (index) => _onNavChanged(context, index),
           navigationDestinations: _getDestinations(),
-          body: LayoutBuilder(
-            builder: (context, constraints) {
+          body: !_isDataLoaded
+              ? const Center(child: CircularProgressIndicator())
+              : LayoutBuilder(
+                  builder: (context, constraints) {
               if (constraints.maxWidth > 900) {
                 return Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -320,21 +350,30 @@ class _AdminStudentFormViewState extends State<_AdminStudentFormView> {
               ),
               child: ClipOval(
                 child: _selectedImagePath != null
-                    ? (kIsWeb
-                          ? Image.network(
-                              _selectedImagePath!,
-                              fit: BoxFit.cover,
-                              width: 110,
-                              height: 110,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(Icons.person),
-                            )
-                          : Image.file(
-                              File(_selectedImagePath!),
-                              fit: BoxFit.cover,
-                              width: 110,
-                              height: 110,
-                            ))
+                    ? (_selectedImagePath!.startsWith('http')
+                        ? Image.network(
+                            _selectedImagePath!,
+                            fit: BoxFit.cover,
+                            width: 110,
+                            height: 110,
+                            errorBuilder: (context, error, stackTrace) =>
+                                const Icon(Icons.person, size: 50),
+                          )
+                        : (kIsWeb
+                            ? Image.network(
+                                _selectedImagePath!,
+                                fit: BoxFit.cover,
+                                width: 110,
+                                height: 110,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    const Icon(Icons.person, size: 50),
+                              )
+                            : Image.file(
+                                File(_selectedImagePath!),
+                                fit: BoxFit.cover,
+                                width: 110,
+                                height: 110,
+                              )))
                     : Container(
                         color: Theme.of(
                           context,

@@ -61,15 +61,16 @@ class StudentCard extends StatelessWidget {
                       : Theme.of(
                           context,
                         ).colorScheme.primary.withValues(alpha: 0.1),
-                  backgroundImage: student.profileImagePath != null
-                      ? (kIsWeb
-                            ? NetworkImage(student.profileImagePath!)
-                                  as ImageProvider
-                            : FileImage(File(student.profileImagePath!)))
-                      : null,
-                  child: student.profileImagePath == null
+                  backgroundImage: (student.profileImageUrl?.isNotEmpty ?? false)
+                      ? NetworkImage(student.profileImageUrl!) as ImageProvider
+                      : student.profileImagePath != null
+                          ? (kIsWeb
+                              ? NetworkImage(student.profileImagePath!) as ImageProvider
+                              : FileImage(File(student.profileImagePath!)))
+                          : null,
+                  child: ((student.profileImageUrl?.isEmpty ?? true) && student.profileImagePath == null)
                       ? Text(
-                          student.name[0],
+                          student.name.isNotEmpty ? student.name[0].toUpperCase() : '?',
                           style: TextStyle(
                             color: isPremium
                                 ? Colors.black

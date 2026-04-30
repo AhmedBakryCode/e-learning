@@ -15,6 +15,7 @@ import 'package:e_learning/features/courses/presentation/pages/admin_course_form
 import 'package:e_learning/features/courses/presentation/pages/courses_page.dart';
 import 'package:e_learning/features/courses/presentation/pages/student_course_details_page.dart';
 import 'package:e_learning/features/courses/presentation/pages/video_player_page.dart';
+import 'package:e_learning/features/courses/domain/entities/course.dart';
 import 'package:e_learning/core/di/service_locator.dart';
 import 'package:e_learning/features/notifications/presentation/cubit/notifications_cubit.dart';
 import 'package:e_learning/features/notifications/presentation/pages/notifications_page.dart';
@@ -27,6 +28,7 @@ import 'package:e_learning/features/progress/presentation/pages/progress_page.da
 import 'package:e_learning/features/students/presentation/pages/admin_student_form_page.dart';
 import 'package:e_learning/features/students/presentation/pages/student_details_page.dart';
 import 'package:e_learning/features/students/presentation/pages/students_page.dart';
+import 'package:e_learning/features/students/domain/entities/student.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -79,7 +81,10 @@ class AppRouter {
         path: '$adminPath/courses/:courseId/edit',
         pageBuilder: (context, state) => _page(
           state,
-          AdminCourseFormPage(courseId: state.pathParameters['courseId']!),
+          AdminCourseFormPage(
+            courseId: state.pathParameters['courseId']!,
+            course: state.extra as Course?,
+          ),
         ),
       ),
       GoRoute(
@@ -109,7 +114,10 @@ class AppRouter {
         path: '$adminPath/students/:studentId/edit',
         pageBuilder: (context, state) => _page(
           state,
-          AdminStudentFormPage(studentId: state.pathParameters['studentId']!),
+          AdminStudentFormPage(
+            studentId: state.pathParameters['studentId']!,
+            student: state.extra as Student?,
+          ),
         ),
       ),
       GoRoute(

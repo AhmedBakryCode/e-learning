@@ -143,7 +143,10 @@ class _StudentDetailsView extends StatelessWidget {
                 ? PopupMenuButton<String>(
                     onSelected: (value) async {
                       if (value == 'edit') {
-                        context.push('/admin/students/$studentId/edit');
+                        context.push(
+                          '/admin/students/$studentId/edit',
+                          extra: studentState.selectedStudent,
+                        );
                       }
                       if (value == 'delete') {
                         final confirmed = await _confirmDelete(context);
@@ -352,7 +355,7 @@ class _UserInfoCard extends StatelessWidget {
             width: 72,
             height: 72,
             decoration: BoxDecoration(
-              gradient: student.profileImagePath == null
+              gradient: ((student.profileImageUrl?.isEmpty ?? true) && student.profileImagePath == null)
                   ? const LinearGradient(
                       colors: [AppColors.primary, AppColors.primarySoft],
                     )
@@ -368,23 +371,32 @@ class _UserInfoCard extends StatelessWidget {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(AppRadii.xl),
-              child: student.profileImagePath != null
-                  ? (kIsWeb
-                        ? Image.network(
-                            student.profileImagePath!,
-                            fit: BoxFit.cover,
-                            width: 72,
-                            height: 72,
-                            errorBuilder: (context, error, stackTrace) =>
-                                const Icon(Icons.person),
-                          )
-                        : Image.file(
-                            File(student.profileImagePath!),
-                            fit: BoxFit.cover,
-                            width: 72,
-                            height: 72,
-                          ))
-                  : Center(
+              child: (student.profileImageUrl?.isNotEmpty ?? false)
+                  ? Image.network(
+                      student.profileImageUrl!,
+                      fit: BoxFit.cover,
+                      width: 72,
+                      height: 72,
+                      errorBuilder: (context, error, stackTrace) =>
+                          const Icon(Icons.person),
+                    )
+                  : student.profileImagePath != null
+                      ? (kIsWeb
+                          ? Image.network(
+                              student.profileImagePath!,
+                              fit: BoxFit.cover,
+                              width: 72,
+                              height: 72,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(Icons.person),
+                            )
+                          : Image.file(
+                              File(student.profileImagePath!),
+                              fit: BoxFit.cover,
+                              width: 72,
+                              height: 72,
+                            ))
+                      : Center(
                       child: Text(
                         student.name
                             .split(' ')

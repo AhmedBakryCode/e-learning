@@ -185,6 +185,10 @@ class StudentsCubit extends Cubit<StudentsState> {
     );
   }
 
+  void searchStudents(String query) {
+    emit(state.copyWith(searchQuery: query));
+  }
+
   Future<void> addStudentCourse({
     required String studentId,
     required String courseId,

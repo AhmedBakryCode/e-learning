@@ -44,6 +44,12 @@ class StudentsPage extends StatelessWidget {
           context.read<StudentsCubit>().clearActionState();
         },
         builder: (context, state) {
+          final filteredStudents = state.students.where((student) {
+            final query = state.searchQuery.toLowerCase();
+            return student.name.toLowerCase().contains(query) ||
+                student.email.toLowerCase().contains(query);
+          }).toList();
+
           return AdaptiveScaffold(
             title: 'Students',
             subtitle: 'Follow students\' status, edit their data, and see their progress easily.',
@@ -85,18 +91,40 @@ class StudentsPage extends StatelessWidget {
                             subtitle: 'Add, edit, delete students or review their details from one list.',
                           ),
                           const SizedBox(height: AppSpacing.lg),
+                          TextField(
+                            onChanged: (value) =>
+                                context.read<StudentsCubit>().searchStudents(value),
+                            decoration: InputDecoration(
+                              hintText: 'Search by student name or email...',
+                              prefixIcon: const Icon(Icons.search_rounded),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(AppRadii.lg),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.lg,
+                                vertical: AppSpacing.md,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.lg),
                           if (state.students.isEmpty)
                             const EmptyStateWidget(
                               title: 'There are no students yet',
                               message: 'Create your first student to start managing students.',
                               icon: Icons.person_search_rounded,
                             )
+                          else if (filteredStudents.isEmpty)
+                            const EmptyStateWidget(
+                              title: 'No students found',
+                              message: 'Try adjusting your search query.',
+                              icon: Icons.search_off_rounded,
+                            )
                           else
                             ResponsiveGrid(
                               mobileCrossAxisCount: 2,
                               tabletCrossAxisCount: 2,
                               desktopCrossAxisCount: 3,
-                              children: state.students.map((student) {
+                              children: filteredStudents.map((student) {
                                 return StudentCard(
                                   onTap: () => context.push('/admin/students/${student.id}'),
                                   student: student,

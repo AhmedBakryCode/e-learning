@@ -45,14 +45,14 @@ class _NotificationsSenderView extends StatefulWidget {
 
 class _NotificationsSenderViewState extends State<_NotificationsSenderView> {
   final TextEditingController _titleController = TextEditingController(
-    text: 'Live Zoom session reminder',
+    text: 'Live Meeting session reminder',
   );
   final TextEditingController _messageController = TextEditingController(
     text:
         'Join today\'s live session with the teacher to review the latest Course updates and ask questions.',
   );
   final TextEditingController _zoomLinkController = TextEditingController(
-    text: 'https://zoom.us/j/1234567890',
+    text: 'https://meet.google.com/abc-defg-hij',
   );
   String? _selectedCourseId;
 
@@ -186,9 +186,25 @@ class _NotificationsSenderViewState extends State<_NotificationsSenderView> {
             children: [
               BlocBuilder<CoursesCubit, CoursesState>(
                 builder: (context, state) {
+                  if (state.status == ViewStateStatus.loading) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+
+                  if (state.status == ViewStateStatus.failure) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                      child: Text(
+                        'Failed to load courses. Please refresh the page.',
+                        style: TextStyle(color: Theme.of(context).colorScheme.error),
+                      ),
+                    );
+                  }
+
                   return DropdownButtonFormField<String>(
-                    key: ValueKey(_selectedCourseId),
-                    initialValue: _selectedCourseId,
+                    value: _selectedCourseId,
                     isExpanded: true,
                     hint: const Text('Send to all students'),
                     decoration: InputDecoration(
@@ -237,7 +253,7 @@ class _NotificationsSenderViewState extends State<_NotificationsSenderView> {
               const SizedBox(height: AppSpacing.md),
               CustomTextField(
                 controller: _zoomLinkController,
-                label: 'Zoom link (optional)',
+                label: 'Meeting link (optional)',
                 keyboardType: TextInputType.url,
                 onChanged: (_) => setState(() {}),
               ),
@@ -248,7 +264,7 @@ class _NotificationsSenderViewState extends State<_NotificationsSenderView> {
         const InlineFeedbackCard(
           title: 'Advice for sending',
           message:
-              'Using shortened Zoom links increases student access to the session.',
+              'Using shortened Meeting links increases student access to the session.',
           color: AppColors.secondary,
           icon: Icons.info_outline_rounded,
         ),

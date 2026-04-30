@@ -160,17 +160,22 @@ class _StudentNotificationsViewState extends State<_StudentNotificationsView> {
       builder: (sheetContext) => _NotificationDetailSheet(
         notification: notification,
         onJoinMeeting: notification.zoomMeetingLink != null
-            ? () => _launchZoomMeeting(notification.zoomMeetingLink!)
+            ? () => _launchMeeting(notification.zoomMeetingLink!)
             : null,
       ),
     );
   }
 
-  Future<void> _launchZoomMeeting(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
+  Future<void> _launchMeeting(String url) async {
+    String link = url.trim();
+    if (!link.startsWith('http://') && !link.startsWith('https://')) {
+      link = 'https://$link';
+    }
+
+    final uri = Uri.parse(link);
+    try {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
+    } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Could not open meeting link')),
@@ -247,7 +252,7 @@ class _NotificationCard extends StatelessWidget {
                     ),
                     const SizedBox(width: AppSpacing.xs),
                     Text(
-                      'Zoom meeting available',
+                      'Meeting available',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: AppColors.secondary,
                       ),
@@ -391,7 +396,7 @@ class _NotificationDetailSheet extends StatelessWidget {
                 child: FilledButton.icon(
                   onPressed: onJoinMeeting,
                   icon: const Icon(Icons.video_call_rounded),
-                  label: const Text('Join Zoom Meeting'),
+                  label: const Text('Join Meeting'),
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.secondary,
                     foregroundColor: Colors.white,

@@ -10,6 +10,7 @@ class StudentsState extends Equatable {
     this.selectedStudent,
     this.errorMessage,
     this.actionMessage,
+    this.searchQuery = '',
   });
 
   final ViewStateStatus status;
@@ -18,6 +19,7 @@ class StudentsState extends Equatable {
   final Student? selectedStudent;
   final String? errorMessage;
   final String? actionMessage;
+  final String searchQuery;
 
   StudentsState copyWith({
     ViewStateStatus? status,
@@ -26,6 +28,7 @@ class StudentsState extends Equatable {
     Student? selectedStudent,
     String? errorMessage,
     String? actionMessage,
+    String? searchQuery,
     bool clearErrorMessage = false,
     bool clearActionMessage = false,
     bool clearSelectedStudent = false,
@@ -43,6 +46,7 @@ class StudentsState extends Equatable {
       actionMessage: clearActionMessage
           ? null
           : actionMessage ?? this.actionMessage,
+      searchQuery: searchQuery ?? this.searchQuery,
     );
   }
 
@@ -54,5 +58,6 @@ class StudentsState extends Equatable {
     selectedStudent,
     errorMessage,
     actionMessage,
+    searchQuery,
   ];
 }

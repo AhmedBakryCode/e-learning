@@ -22,34 +22,16 @@ class StudentNotificationDetailsPage extends StatefulWidget {
 class _StudentNotificationDetailsPageState
     extends State<StudentNotificationDetailsPage> {
   late LearningNotification _notification;
-  bool _isZoomLinkValid = false;
+
 
   @override
   void initState() {
     super.initState();
     _notification = widget.notification;
-    _validateZoomLink();
     _markAsRead();
   }
 
-  Future<void> _validateZoomLink() async {
-    final link = _notification.zoomMeetingLink;
-    if (link == null || link.isEmpty) {
-      setState(() => _isZoomLinkValid = false);
-      return;
-    }
 
-    // Check if it's a valid URL format
-    final uri = Uri.tryParse(link);
-    if (uri == null || !uri.hasScheme || !uri.hasAuthority) {
-      setState(() => _isZoomLinkValid = false);
-      return;
-    }
-
-    // Check if the URL can be launched
-    final canLaunch = await canLaunchUrl(uri);
-    setState(() => _isZoomLinkValid = canLaunch);
-  }
 
   void _markAsRead() {
     if (!_notification.isRead) {
@@ -60,14 +42,18 @@ class _StudentNotificationDetailsPageState
     }
   }
 
-  Future<void> _launchZoomMeeting() async {
-    final link = _notification.zoomMeetingLink;
+  Future<void> _launchMeeting() async {
+    String? link = _notification.zoomMeetingLink?.trim();
     if (link == null || link.isEmpty) return;
 
+    if (!link.startsWith('http://') && !link.startsWith('https://')) {
+      link = 'https://$link';
+    }
+
     final uri = Uri.parse(link);
-    if (await canLaunchUrl(uri)) {
+    try {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
+    } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Could not open meeting link')),
@@ -204,7 +190,7 @@ class _StudentNotificationDetailsPageState
               ],
             ),
           ),
-          // Zoom Meeting Button
+          // Meeting Button
           if (_notification.zoomMeetingLink != null &&
               _notification.zoomMeetingLink!.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.xl),
@@ -212,13 +198,9 @@ class _StudentNotificationDetailsPageState
               width: double.infinity,
               height: 56,
               child: FilledButton.icon(
-                onPressed: _isZoomLinkValid ? _launchZoomMeeting : null,
+                onPressed: _launchMeeting,
                 icon: const Icon(Icons.video_call_rounded),
-                label: Text(
-                  _isZoomLinkValid
-                      ? 'Join Zoom Meeting'
-                      : 'Invalid Meeting Link',
-                ),
+                label: const Text('Join Meeting'),
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.secondary,
                   foregroundColor: Colors.white,
@@ -227,17 +209,6 @@ class _StudentNotificationDetailsPageState
                 ),
               ),
             ),
-            if (!_isZoomLinkValid) ...[
-              const SizedBox(height: AppSpacing.sm),
-              Center(
-                child: Text(
-                  'The meeting link is not valid or has expired',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: AppColors.muted),
-                ),
-              ),
-            ],
           ],
           const SizedBox(height: AppSpacing.xxxl),
           // Back button

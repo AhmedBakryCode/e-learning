@@ -304,15 +304,17 @@ class _TopStudentSlide extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 56,
-              backgroundImage: student.profileImagePath != null
-                  ? (kIsWeb
-                      ? NetworkImage(student.profileImagePath!)
-                      : FileImage(File(student.profileImagePath!)))
-                  : null,
+              backgroundImage: student.profileImageUrl != null
+                  ? NetworkImage(student.profileImageUrl!)
+                  : student.profileImagePath != null
+                      ? (kIsWeb
+                          ? NetworkImage(student.profileImagePath!)
+                          : FileImage(File(student.profileImagePath!))) as ImageProvider
+                      : null,
               backgroundColor: accent.withAlpha(isDark ? 40 : 20),
-              child: student.profileImagePath == null
+              child: student.profileImageUrl == null && student.profileImagePath == null
                   ? Text(
-                      student.name[0],
+                      student.name.isNotEmpty ? student.name[0].toUpperCase() : '?',
                       style: TextStyle(color: accent, fontSize: 28),
                     )
                   : null,

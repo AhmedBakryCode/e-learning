@@ -73,7 +73,10 @@ class AdminCourseDetailsPage extends StatelessWidget {
                 ? PopupMenuButton<String>(
                     onSelected: (value) async {
                       if (value == 'edit') {
-                        context.push('/admin/courses/$courseId/edit');
+                        context.push(
+                          '/admin/courses/$courseId/edit',
+                          extra: state.selectedCourse,
+                        );
                       }
                       if (value == 'delete') {
                         final confirmed = await _confirmDelete(context);
@@ -294,7 +297,10 @@ class _CourseHeaderCard extends StatelessWidget {
             children: [
               Expanded(
                 child: FilledButton(
-                  onPressed: () => context.push('/admin/courses/$courseId/edit'),
+                  onPressed: () => context.push(
+                    '/admin/courses/$courseId/edit',
+                    extra: state.selectedCourse,
+                  ),
                   child: const Text('Edit the chorus'),
                 ),
               ),

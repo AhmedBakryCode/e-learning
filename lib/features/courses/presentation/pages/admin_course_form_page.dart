@@ -20,24 +20,28 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'package:e_learning/features/courses/domain/entities/course.dart';
+
 class AdminCourseFormPage extends StatelessWidget {
-  const AdminCourseFormPage({super.key, this.courseId});
+  const AdminCourseFormPage({super.key, this.courseId, this.course});
 
   final String? courseId;
+  final Course? course;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => sl<CoursesCubit>(),
-      child: _AdminCourseFormView(courseId: courseId),
+      child: _AdminCourseFormView(courseId: courseId, course: course),
     );
   }
 }
 
 class _AdminCourseFormView extends StatefulWidget {
-  const _AdminCourseFormView({required this.courseId});
+  const _AdminCourseFormView({required this.courseId, this.course});
 
   final String? courseId;
+  final Course? course;
 
   @override
   State<_AdminCourseFormView> createState() => _AdminCourseFormViewState();
@@ -54,13 +58,12 @@ class _AdminCourseFormViewState extends State<_AdminCourseFormView> {
   String? _initialImageUrl;
 
   bool get _isEdit => widget.courseId != null;
+  bool _isDataLoaded = false;
 
   @override
   void initState() {
     super.initState();
-    final course = widget.courseId == null
-        ? null
-        : MockCoursesDataSource.findCourse(widget.courseId!);
+    final course = widget.course;
 
     _titleController = TextEditingController(text: course?.title ?? '');
     _instructorController = TextEditingController(
@@ -76,6 +79,14 @@ class _AdminCourseFormViewState extends State<_AdminCourseFormView> {
 
     _titleController.addListener(_refresh);
     _descriptionController.addListener(_refresh);
+
+    if (widget.courseId != null && course == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<CoursesCubit>().loadCourseDetails(widget.courseId!);
+      });
+    } else {
+      _isDataLoaded = true;
+    }
   }
 
   @override
@@ -92,9 +103,27 @@ class _AdminCourseFormViewState extends State<_AdminCourseFormView> {
   Widget build(BuildContext context) {
     return BlocConsumer<CoursesCubit, CoursesState>(
       listenWhen: (previous, current) =>
-          previous.actionStatus != current.actionStatus &&
-          current.actionStatus != ViewStateStatus.initial,
+          (previous.actionStatus != current.actionStatus &&
+              current.actionStatus != ViewStateStatus.initial) ||
+          (previous.status != current.status &&
+              current.status == ViewStateStatus.success),
       listener: (context, state) {
+        if (!_isDataLoaded &&
+            state.status == ViewStateStatus.success &&
+            state.selectedCourse != null) {
+          final course = state.selectedCourse!;
+          _titleController.text = course.title;
+          _instructorController.text = course.instructorName;
+          _descriptionController.text = course.description;
+          setState(() {
+            _level = course.level;
+            _category = course.category;
+            _isPublished = course.isPublished;
+            _initialImageUrl = course.imageUrl;
+            _isDataLoaded = true;
+          });
+        }
+
         final isLoading = state.actionStatus == ViewStateStatus.loading;
         final isSuccess = state.actionStatus == ViewStateStatus.success;
         final isFailure = state.actionStatus == ViewStateStatus.failure;
@@ -132,8 +161,10 @@ class _AdminCourseFormViewState extends State<_AdminCourseFormView> {
           selectedIndex: 1,
           onNavigationChanged: (index) => _onNavChanged(context, index),
           navigationDestinations: _getDestinations(),
-          body: LayoutBuilder(
-            builder: (context, constraints) {
+          body: !_isDataLoaded
+              ? const Center(child: CircularProgressIndicator())
+              : LayoutBuilder(
+                  builder: (context, constraints) {
               if (constraints.maxWidth > 900) {
                 return Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
