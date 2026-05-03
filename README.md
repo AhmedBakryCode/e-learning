@@ -1,69 +1,70 @@
-# Elevate LMS
+# 📚 توثيق مشروع تطبيق التعلم الإلكتروني (E-Learning App)
 
-Production-ready Flutter starter for an e-learning platform with two dashboards:
+## 1. نظرة عامة على المشروع (Project Overview)
+تطبيق **E-Learning** هو منصة تعليمية متكاملة مبنية باستخدام إطار عمل **Flutter**. يهدف التطبيق إلى توفير بيئة تعليمية تفاعلية تربط بين إدارة المنصة (أو المعلمين) والطلاب. 
+يحتوي التطبيق على نظام إدارة كامل للطلاب والكورسات، بالإضافة إلى تتبع تقدم الطلاب (Progress)، نظام تعليقات تفاعلي (Comments)، إشعارات لحظية (Notifications)، ونظام للمدفوعات (Payment).
 
-- `Admin / Teacher`
-- `Student`
+### البنية التحتية (Architecture)
+تم بناء المشروع باستخدام بنية **الطبقات النظيفة (Clean Architecture)** لضمان قابلية التوسع والصيانة والاختبار، حيث تنقسم كل ميزة (Feature) في التطبيق إلى ثلاث طبقات:
+1. **Data Layer:** للتعامل مع واجهات برمجة التطبيقات (APIs) وقواعد البيانات المحلية (Data Sources, Models, Repositories).
+2. **Domain Layer:** تحتوي على منطق العمل الأساسي (Entities, Use Cases).
+3. **Presentation Layer:** واجهة المستخدم وإدارة الحالة (Pages, Widgets, Cubits).
 
-## Stack
+**تقنيات إضافية:**
+* **إدارة الحالة:** يتم استخدام `Cubit` (جزء من BLoC) لإدارة حالات واجهة المستخدم.
+* **حقن الاعتماديات:** باستخدام حزمة `GetIt` للوصول إلى الخدمات (Service Locator).
+* **التوجيه (Routing):** باستخدام `GoRouter` لإدارة مسارات التطبيق.
+* **الشبكة (Networking):** حزمة `Dio` للتعامل مع طلبات الـ API والمصادقة.
 
-- `flutter_bloc` with Cubit-first state management
-- `get_it` for dependency injection
-- `dio` for API-ready networking
-- `go_router` for role-based navigation
-- Clean Architecture with `core/` and feature-first modules
+---
 
-## Folder Structure
+## 2. الأدوار وصلاحيات الوصول (Roles & Access)
+ينقسم المستخدمون في التطبيق إلى نوعين أساسيين:
+- **المسؤول / المعلم (Admin/Teacher):** يمتلك لوحة تحكم كاملة (Dashboard) لإدارة المنصة، إضافة وتعديل الكورسات، متابعة الطلاب، وإرسال الإشعارات.
+- **الطالب (Student):** يمتلك واجهة خاصة لاستعراض الكورسات، متابعة تقدمه الدراسي، مشاهدة الفيديوهات، التفاعل عبر التعليقات، واستقبال الإشعارات.
 
-```text
-lib/
-├── app/
-│   ├── app.dart
-│   ├── router/
-│   │   ├── app_router.dart
-│   │   └── go_router_refresh_stream.dart
-│   └── theme/
-│       ├── app_colors.dart
-│       └── app_theme.dart
-├── core/
-│   ├── constants/
-│   ├── di/
-│   ├── error/
-│   ├── extensions/
-│   ├── network/
-│   ├── usecases/
-│   └── widgets/
-├── features/
-│   ├── auth/
-│   ├── comments/
-│   ├── courses/
-│   ├── notifications/
-│   ├── progress/
-│   └── students/
-└── main.dart
-```
+---
 
-Each feature follows:
+## 3. نظام تسجيل الدخول والحسابات (Authentication)
 
-```text
-feature_name/
-├── data/
-│   ├── datasources/
-│   ├── models/
-│   └── repositories/
-├── domain/
-│   ├── entities/
-│   ├── repositories/
-│   └── usecases/
-└── presentation/
-    ├── cubit/
-    ├── pages/
-    └── widgets/
-```
+### أ. حساب المسؤول (Admin Account)
+- **الدخول للنظام:** لا يتيح النظام للمسؤولين إنشاء حسابات جديدة بأنفسهم عبر التطبيق (لأسباب أمنية)، بل يتم الدخول باستخدام حسابات الإدارة المُعَدة مسبقاً من قاعدة البيانات.
+- يقوم المسؤول بإدخال البريد الإلكتروني وكلمة المرور في شاشة تسجيل الدخول (`LoginPage`). بناءً على دور المستخدم المسترجع من الخادم (`UserRole.admin`)، يقوم نظام التوجيه بنقله مباشرة إلى لوحة تحكم الإدارة.
 
-## Notes
+### ب. إنشاء حسابات الطلاب (Student Account Creation)
+نظام التطبيق يعتمد على "التسجيل المدار" (Managed Registration)، مما يعني أن المسؤول هو من يقوم بإنشاء حسابات الطلاب لضمان موثوقية المسجلين في الأكاديمية. تتم العملية كالتالي:
+1. يقوم المسؤول بتسجيل الدخول إلى لوحة التحكم.
+2. يتوجه إلى قسم **الطلاب (Students)** وينقر على خيار إضافة طالب جديد (`New Student`).
+3. تفتح شاشة نموذج الطالب (**`AdminStudentFormPage`**)، حيث يقوم المسؤول بإدخال البيانات التالية للطالب:
+   - **الاسم الكامل (Full Name).**
+   - **البريد الإلكتروني (Email):** وهو البريد الذي سيستخدمه الطالب لتسجيل الدخول لاحقاً.
+   - **كلمة المرور (Password):** يتم تعيين كلمة مرور مبدئية للطالب.
+   - **رقم هاتف الطالب (Phone Number).**
+   - **رقم هاتف ولي الأمر (Guardian Number):** للتواصل في حالات الطوارئ أو لمتابعة تقدم الطالب.
+   - **صورة الملف الشخصي:** يمكن للمسؤول التقاط صورة للطالب عبر الكاميرا أو رفعها من الاستوديو.
+4. عند الضغط على زر الحفظ، يتم إرسال البيانات للخادم. بعد نجاح العملية، يمكن للطالب تحميل التطبيق وتسجيل الدخول ببريده الإلكتروني وكلمة المرور التي استلمها من الإدارة.
 
-- `courses/` is the most complete example feature and demonstrates the full clean architecture flow.
-- `ApiService` is already prepared with request/error interceptors and token injection support for future API integration.
-- Routing redirects users into the correct dashboard based on the authenticated role.
-- Light and dark themes are configured around the requested deep blue brand color `#182243`.
+---
+
+## 4. تفاصيل الأمان والحماية (Security Details)
+تم تصميم التطبيق مع مراعاة معايير الأمان القوية لحماية بيانات الطلاب والمنصة، وتتلخص في النقاط التالية:
+
+1. **المصادقة باستخدام الرموز المميزة (Token-Based Authentication):**
+   - عند تسجيل الدخول بنجاح، يُصدر الخادم رمزين: `accessToken` (قصير الأمد) و `refreshToken` (طويل الأمد).
+   - يتم تخزين هذه الرموز بشكل آمن داخل الجهاز.
+
+2. **تأمين الاتصالات والطلبات (Secure API Calls):**
+   - تم إعداد طبقة الشبكة (`ApiService` باستخدام `Dio`) لاعتراض كافة الطلبات الصادرة من التطبيق (Interceptors).
+   - يقوم النظام تلقائياً بسحب الـ `Token` وإرفاقه في ترويسة جميع الطلبات كـ `Authorization: Bearer <token>`.
+   - أي محاولة للوصول إلى البيانات الحساسة بدون هذا الرمز سيتم رفضها فوراً من قبل الخادم.
+
+3. **تجديد الجلسات التلقائي (Token Refreshing):**
+   - يحتوي التطبيق على آلية لتجديد الـ `accessToken` تلقائياً باستخدام الـ `refreshToken` في حال انتهاء صلاحيته، مما يوفر تجربة مستخدم سلسة دون إجباره على تسجيل الدخول مراراً وتكراراً، وفي نفس الوقت يحافظ على أمان النظام عبر جعل الـ Access Token قصير العمر.
+
+4. **التحكم في الصلاحيات بناءً على الدور (Role-Based Access Control - RBAC):**
+   - التطبيق يطبق فصل تام بين واجهات المسؤول وواجهات الطالب.
+   - بمجرد قراءة الـ `UserRole` من بيانات المستخدم، يتم تحديد المسارات المسموحة له باستخدام `GoRouter`. لا يمكن لطالب الوصول إلى مسارات الإدارة (مثل `/admin/students`) حتى وإن حاول تجاوز واجهة المستخدم، لأن الخادم سيرفض طلباته أيضاً بناءً على الصلاحيات المربوطة بالتوكن الخاص به.
+
+5. **أمان البيانات المدخلة وإدارة الأخطاء:**
+   - يتم استخدام حقول إدخال محمية لكلمات المرور (`obscureText`) في جميع واجهات التطبيق.
+   - يقوم التطبيق بعمل (Validation) محلي للبيانات قبل إرسالها لتجنب الثغرات وتقليل الضغط على الخادم، كما يقوم باعتراض أخطاء الشبكة وتسجيلها (Logging) بشكل آمن للمطورين في وضع الـ `Debug Mode` فقط دون إظهار معلومات حساسة للمستخدم النهائي.
